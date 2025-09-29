@@ -97,3 +97,14 @@ export interface LegalInfo {
 
 // 전체 법령 데이터 타입
 export type LegalData = Record<string, LegalInfo>;
+
+// 공지사항 타입
+export interface Notice {
+  id: number;
+  date: string;
+  type: 'update' | 'notice' | 'info' | 'warning';
+  title: string;
+  content: string;
+  important: boolean;
+  badge?: string;
+}

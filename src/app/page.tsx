@@ -1,7 +1,23 @@
+"use client";
+
 import Link from "next/link";
-import { Calculator, FileText, DollarSign, Search, HelpCircle, Briefcase } from "lucide-react";
+import { Calculator, FileText, DollarSign, Search, HelpCircle, Briefcase, Bell, X } from "lucide-react";
+import { useState } from "react";
+import { Notice } from "@/types";
+import noticesData from "@/data/notices.json";
 
 export default function Home() {
+  const [dismissedNotices, setDismissedNotices] = useState<number[]>([]);
+  const notices = noticesData as Notice[];
+
+  // 최신 중요 공지 가져오기 (해제되지 않은 것 중)
+  const activeNotices = notices
+    .filter(notice => notice.important && !dismissedNotices.includes(notice.id))
+    .slice(0, 1); // 상단에는 최신 1개만 표시
+
+  const dismissNotice = (noticeId: number) => {
+    setDismissedNotices(prev => [...prev, noticeId]);
+  };
   const features = [
     {
       icon: Calculator,
@@ -37,6 +53,13 @@ export default function Home() {
       description: "HR 업무 중 자주 발생하는 질문과 답변을 확인합니다",
       href: "/faq",
       color: "bg-red-500"
+    },
+    {
+      icon: Bell,
+      title: "공지사항",
+      description: "새로운 기능 업데이트와 중요한 안내사항을 확인합니다",
+      href: "/notices",
+      color: "bg-indigo-500"
     }
   ];
 
@@ -56,6 +79,41 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* 공지 배너 */}
+      {activeNotices.map(notice => (
+        <div key={notice.id} className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center space-x-3">
+                <Bell className="h-5 w-5 text-blue-200" />
+                <div className="flex items-center space-x-2">
+                  {notice.badge && (
+                    <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-medium">
+                      {notice.badge}
+                    </span>
+                  )}
+                  <span className="font-medium">{notice.title}</span>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Link
+                  href="/notices"
+                  className="text-blue-200 hover:text-white text-sm underline"
+                >
+                  자세히 보기
+                </Link>
+                <button
+                  onClick={() => dismissNotice(notice.id)}
+                  className="text-blue-200 hover:text-white p-1"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
 
       {/* Hero Section */}
       <section className="py-12 px-4 sm:px-6 lg:px-8">
