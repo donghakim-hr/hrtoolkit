@@ -1,14 +1,96 @@
 "use client";
 
 import Link from "next/link";
-import { Calculator, FileText, DollarSign, Search, HelpCircle, Briefcase, Bell, X } from "lucide-react";
-import { useState } from "react";
+import { Calculator, FileText, DollarSign, Search, HelpCircle, Briefcase, Bell, X, User, LogIn, LogOut, MessageSquare, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Notice } from "@/types";
 import noticesData from "@/data/notices.json";
 
+interface UserSession {
+  userId: string;
+  username: string;
+  name: string;
+  email: string;
+}
+
 export default function Home() {
   const [dismissedNotices, setDismissedNotices] = useState<number[]>([]);
+  const [userSession, setUserSession] = useState<UserSession | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [showCommunityDropdown, setShowCommunityDropdown] = useState(false);
+  const [quickLoginForm, setQuickLoginForm] = useState({ username: "", password: "" });
+  const [quickLoginLoading, setQuickLoginLoading] = useState(false);
   const notices = noticesData as Notice[];
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showCommunityDropdown) {
+        const target = event.target as Element;
+        if (!target.closest('.relative')) {
+          setShowCommunityDropdown(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCommunityDropdown]);
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch("/api/auth/me");
+      if (response.ok) {
+        const data = await response.json();
+        setUserSession(data.user);
+      }
+    } catch (error) {
+      console.error("인증 상태 확인 오류:", error);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setUserSession(null);
+    } catch (error) {
+      console.error("로그아웃 오류:", error);
+    }
+  };
+
+  const handleQuickLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuickLoginLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(quickLoginForm),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserSession(data.user);
+        setQuickLoginForm({ username: "", password: "" });
+      } else {
+        const error = await response.json();
+        alert(error.error || "로그인에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("로그인 오류:", error);
+      alert("서버 연결에 실패했습니다.");
+    } finally {
+      setQuickLoginLoading(false);
+    }
+  };
 
   // 최신 중요 공지 가져오기 (해제되지 않은 것 중)
   const activeNotices = notices
@@ -46,20 +128,6 @@ export default function Home() {
       description: "근로기준법, 고용노동부 지침 등 관련 법령을 검색합니다",
       href: "/legal-search",
       color: "bg-orange-500"
-    },
-    {
-      icon: HelpCircle,
-      title: "자주 묻는 질문",
-      description: "HR 업무 중 자주 발생하는 질문과 답변을 확인합니다",
-      href: "/faq",
-      color: "bg-red-500"
-    },
-    {
-      icon: Bell,
-      title: "공지사항",
-      description: "새로운 기능 업데이트와 중요한 안내사항을 확인합니다",
-      href: "/notices",
-      color: "bg-indigo-500"
     }
   ];
 
@@ -73,9 +141,131 @@ export default function Home() {
               <Briefcase className="h-8 w-8 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">HR-Toolkit</h1>
             </div>
-            <p className="text-sm text-black hidden sm:block">
-              HR 신입을 위한 필수 계산 도구
-            </p>
+
+            <div className="flex items-center space-x-6">
+              {/* 네비게이션 메뉴 */}
+              <nav className="hidden md:flex items-center space-x-6">
+                <Link
+                  href="/notices"
+                  className="flex items-center text-black hover:text-blue-600 transition-colors"
+                >
+                  <Bell className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">공지사항</span>
+                </Link>
+                <Link
+                  href="/faq"
+                  className="flex items-center text-black hover:text-blue-600 transition-colors"
+                >
+                  <HelpCircle className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">자주묻는질문</span>
+                </Link>
+                {/* 커뮤니티 드롭다운 */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowCommunityDropdown(!showCommunityDropdown)}
+                    className="flex items-center text-black hover:text-blue-600 transition-colors"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-1" />
+                    <span className="text-sm font-medium">커뮤니티</span>
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </button>
+                  {showCommunityDropdown && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                      <div className="py-2">
+                        <Link
+                          href="/community/free-board"
+                          className="block px-4 py-2 text-sm text-black hover:bg-gray-50 hover:text-blue-600"
+                          onClick={() => setShowCommunityDropdown(false)}
+                        >
+                          자유게시판
+                        </Link>
+                        <Link
+                          href="/community/hr-chat"
+                          className="block px-4 py-2 text-sm text-black hover:bg-gray-50 hover:text-blue-600"
+                          onClick={() => setShowCommunityDropdown(false)}
+                        >
+                          HR수다
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </nav>
+
+              <p className="text-sm text-black hidden lg:block">
+                HR 신입을 위한 필수 계산 도구
+              </p>
+
+              {/* 로그인 상태에 따른 UI */}
+              {authLoading ? (
+                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              ) : userSession ? (
+                <div className="flex items-center space-x-3">
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    <User className="h-4 w-4 mr-1" />
+                    <span className="text-sm font-medium hidden sm:block">{userSession.name}</span>
+                    <span className="text-sm font-medium sm:hidden">대시보드</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center text-black hover:text-red-600 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4 mr-1" />
+                    <span className="text-sm hidden sm:block">로그아웃</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-3">
+                  {/* 빠른 로그인 폼 */}
+                  <form onSubmit={handleQuickLogin} className="hidden lg:flex items-center space-x-2">
+                    <input
+                      type="text"
+                      placeholder="아이디"
+                      value={quickLoginForm.username}
+                      onChange={(e) => setQuickLoginForm(prev => ({ ...prev, username: e.target.value }))}
+                      className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500 w-20"
+                      disabled={quickLoginLoading}
+                    />
+                    <input
+                      type="password"
+                      placeholder="비밀번호"
+                      value={quickLoginForm.password}
+                      onChange={(e) => setQuickLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                      className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500 w-20"
+                      disabled={quickLoginLoading}
+                    />
+                    <button
+                      type="submit"
+                      disabled={quickLoginLoading || !quickLoginForm.username || !quickLoginForm.password}
+                      className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {quickLoginLoading ? "..." : "로그인"}
+                    </button>
+                  </form>
+                  {/* 기존 로그인/회원가입 버튼 */}
+                  <div className="flex items-center space-x-2">
+                    <Link
+                      href="/auth/login"
+                      className="flex items-center text-blue-600 hover:text-blue-700 transition-colors px-3 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-50"
+                    >
+                      <LogIn className="h-4 w-4 mr-1" />
+                      <span className="text-sm font-medium lg:hidden">로그인</span>
+                      <span className="text-sm font-medium hidden lg:block">상세로그인</span>
+                    </Link>
+                    <Link
+                      href="/auth/register"
+                      className="flex items-center bg-blue-600 hover:bg-blue-700 text-white transition-colors px-3 py-1.5 rounded-lg"
+                    >
+                      <User className="h-4 w-4 mr-1" />
+                      <span className="text-sm font-medium">회원가입</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
