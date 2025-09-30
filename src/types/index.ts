@@ -47,6 +47,7 @@ export interface RetirementPayResult {
   workingYears: number;
   workingMonths: number;
   averagePay: number;
+  monthlyPay: number;
   retirementPay: number;
   continuousServiceBonus: number;
   totalAmount: number;

@@ -182,7 +182,7 @@ export default function RetirementTaxPage() {
                     value={retirementPay}
                     onChange={(e) => setRetirementPay(formatNumber(e.target.value))}
                     placeholder="예: 50,000,000"
-                    className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black"
                   />
                   <span className="absolute right-3 top-2 text-black">원</span>
                 </div>
@@ -199,7 +199,7 @@ export default function RetirementTaxPage() {
                     onChange={(e) => setWorkingYears(e.target.value)}
                     placeholder="예: 10"
                     min="1"
-                    className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black"
                   />
                   <span className="absolute right-3 top-2 text-black">년</span>
                 </div>
@@ -217,7 +217,7 @@ export default function RetirementTaxPage() {
                     placeholder="예: 55"
                     min="1"
                     max="100"
-                    className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black"
                   />
                   <span className="absolute right-3 top-2 text-black">세</span>
                 </div>

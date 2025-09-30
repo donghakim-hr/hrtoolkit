@@ -22,7 +22,10 @@ export default function RetirementPayPage() {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const avgPay = parseInt(averagePay.replace(/,/g, ""));
+    const monthlyPay = parseInt(averagePay.replace(/,/g, ""));
+
+    // 월급을 일급으로 변환 (월급 ÷ 30일)
+    const avgPay = Math.round(monthlyPay / 30);
 
     if (start >= end) {
       alert("퇴사일은 입사일보다 나중이어야 합니다.");
@@ -68,6 +71,7 @@ export default function RetirementPayPage() {
       workingYears,
       workingMonths,
       averagePay: avgPay,
+      monthlyPay: monthlyPay,
       retirementPay: Math.round(retirementPay),
       continuousServiceBonus,
       totalAmount: Math.round(retirementPay + continuousServiceBonus),
@@ -132,7 +136,7 @@ export default function RetirementPayPage() {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                 />
               </div>
 
@@ -144,26 +148,26 @@ export default function RetirementPayPage() {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  평균임금 (일급)
+                  평균임금 (월급)
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     value={averagePay}
                     onChange={(e) => setAveragePay(formatNumber(e.target.value))}
-                    placeholder="예: 200,000"
-                    className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="예: 3,000,000"
+                    className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                   />
                   <span className="absolute right-3 top-2 text-black">원</span>
                 </div>
                 <p className="text-xs text-black mt-1">
-                  * 퇴직일 이전 3개월간 지급받은 임금의 총액을 그 기간의 총일수로 나눈 금액
+                  * 퇴직일 이전 3개월간 지급받은 월평균 임금 (월 기준으로 입력)
                 </p>
               </div>
 
@@ -174,7 +178,7 @@ export default function RetirementPayPage() {
                 <select
                   value={retirementType}
                   onChange={(e) => setRetirementType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                 >
                   <option value="퇴직금">퇴직금제</option>
                   <option value="퇴직연금">퇴직연금제 (참고)</option>
@@ -227,7 +231,11 @@ export default function RetirementPayPage() {
                     <span className="font-medium">{result.workingDays}일</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-black">평균임금</span>
+                    <span className="text-black">평균임금 (월급)</span>
+                    <span className="font-medium">{result.monthlyPay.toLocaleString()}원/월</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-black">평균임금 (일급)</span>
                     <span className="font-medium">{result.averagePay.toLocaleString()}원/일</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
