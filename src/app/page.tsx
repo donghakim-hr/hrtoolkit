@@ -118,7 +118,7 @@ export default function Home() {
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
               <Briefcase className="h-8 w-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">HR-Toolkit</h1>
+              <h1 className="text-2xl font-bold text-black">HR-Toolkit</h1>
             </Link>
 
             <div className="flex items-center space-x-6">
@@ -248,7 +248,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">
+          <h1 className="text-4xl font-bold text-black sm:text-5xl">
             HR 업무가
             <span className="text-blue-600"> 쉬워집니다</span>
           </h1>
@@ -276,7 +276,7 @@ export default function Home() {
                       <Icon className="h-6 w-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-lg font-semibold text-black group-hover:text-blue-600 transition-colors">
                         {feature.title}
                       </h3>
                       <p className="text-sm text-black mt-1">
@@ -285,7 +285,7 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>

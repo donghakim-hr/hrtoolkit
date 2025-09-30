@@ -2,8 +2,9 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { ArrowLeft, Calculator, Calendar, Info } from "lucide-react";
+import { ArrowLeft, Calculator, Calendar, Info, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { AnnualLeaveResult, YearlyLeaveInfo } from "@/types";
+import { exportAnnualLeaveToPDF, exportAnnualLeaveToExcel } from "@/utils/exportUtils";
 
 export default function AnnualLeavePage() {
   const [startDate, setStartDate] = useState("");
