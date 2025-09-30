@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, DollarSign, Calendar, Info, AlertTriangle, Calculator } from "lucide-react";
+import { ArrowLeft, DollarSign, Calendar, Info, AlertTriangle, Calculator, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { RetirementPayResult } from "@/types";
+import { exportRetirementPayToPDF, exportRetirementPayToExcel } from "@/utils/exportUtils";
 
 export default function RetirementPayPage() {
   const router = useRouter();
@@ -281,6 +282,33 @@ export default function RetirementPayPage() {
                   </button>
                   <p className="text-xs text-gray-600 mt-2 text-center">
                     계산된 퇴직급여를 바탕으로 퇴직소득세를 자동 계산합니다
+                  </p>
+                </div>
+
+                {/* 출력 버튼들 */}
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <h4 className="font-medium text-black mb-3 flex items-center">
+                    <Download className="h-5 w-5 mr-2 text-green-600" />
+                    계산 결과 출력
+                  </h4>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => exportRetirementPayToPDF(result)}
+                      className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      PDF 다운로드
+                    </button>
+                    <button
+                      onClick={() => exportRetirementPayToExcel(result)}
+                      className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                    >
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Excel 다운로드
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    계산 결과를 PDF 또는 Excel 파일로 저장할 수 있습니다
                   </p>
                 </div>
               </div>

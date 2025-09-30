@@ -610,6 +610,33 @@ export default function AnnualLeavePage() {
                     </div>
                   </div>
                 )}
+
+                {/* 출력 버튼들 */}
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <h4 className="font-medium text-black mb-3 flex items-center">
+                    <Download className="h-5 w-5 mr-2 text-blue-600" />
+                    계산 결과 출력
+                  </h4>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => exportAnnualLeaveToPDF(result)}
+                      className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      PDF 다운로드
+                    </button>
+                    <button
+                      onClick={() => exportAnnualLeaveToExcel(result)}
+                      className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                    >
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Excel 다운로드
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    계산 결과를 PDF 또는 Excel 파일로 저장할 수 있습니다
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="text-center text-black py-8">
