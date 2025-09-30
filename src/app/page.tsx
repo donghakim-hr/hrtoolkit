@@ -100,6 +100,13 @@ export default function Home() {
       description: "근로기준법, 고용노동부 지침 등 관련 법령을 검색합니다",
       href: "/legal-search",
       color: "bg-orange-500"
+    },
+    {
+      icon: HelpCircle,
+      title: "HR FAQ",
+      description: "HR 업무 중 자주 묻는 질문과 답변을 법령 조문과 함께 확인합니다",
+      href: "/faq",
+      color: "bg-red-500"
     }
   ];
 
@@ -123,13 +130,6 @@ export default function Home() {
                 >
                   <Bell className="h-4 w-4 mr-1" />
                   <span className="text-sm font-medium">공지사항</span>
-                </Link>
-                <Link
-                  href="/faq"
-                  className="flex items-center text-black hover:text-blue-600 transition-colors"
-                >
-                  <HelpCircle className="h-4 w-4 mr-1" />
-                  <span className="text-sm font-medium">자주묻는질문</span>
                 </Link>
                 <Link
                   href="/inquiry"

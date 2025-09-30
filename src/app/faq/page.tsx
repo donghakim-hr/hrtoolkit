@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, HelpCircle, ChevronDown, ChevronUp, Clock, Users, DollarSign, Calendar } from "lucide-react";
 import { FaqCategory } from '@/lib/faq';
+import faqDataJson from '@/data/faq.json';
 
 export default function FaqPage() {
   const [openItems, setOpenItems] = useState<number[]>([]);
@@ -11,26 +12,9 @@ export default function FaqPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchFaqData();
+    setFaqData(faqDataJson as FaqCategory[]);
+    setLoading(false);
   }, []);
-
-  const fetchFaqData = async () => {
-    try {
-      const response = await fetch('/api/admin/faq');
-      if (response.ok) {
-        const data = await response.json();
-        setFaqData(data.faq);
-      } else {
-        // Fallback to empty array if API fails
-        setFaqData([]);
-      }
-    } catch (error) {
-      console.error('Error fetching FAQ data:', error);
-      setFaqData([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const toggleItem = (index: number) => {
     setOpenItems(prev =>
@@ -66,17 +50,14 @@ export default function FaqPage() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center text-black hover:text-gray-700 transition-colors">
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                홈으로
-              </Link>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <div className="flex items-center space-x-3">
-                <HelpCircle className="h-6 w-6 text-red-600" />
-                <h1 className="text-xl font-bold text-gray-900">자주 묻는 질문</h1>
-              </div>
+          <div className="flex items-center justify-center h-16 relative">
+            <Link href="/" className="absolute left-0 flex items-center text-black hover:text-gray-700 transition-colors">
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              홈으로
+            </Link>
+            <div className="flex items-center space-x-3">
+              <HelpCircle className="h-6 w-6 text-red-600" />
+              <h1 className="text-xl font-bold text-gray-900">HR FAQ</h1>
             </div>
           </div>
         </div>
