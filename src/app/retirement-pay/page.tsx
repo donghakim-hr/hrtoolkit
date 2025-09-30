@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, DollarSign, Calendar, Info, AlertTriangle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, DollarSign, Calendar, Info, AlertTriangle, Calculator } from "lucide-react";
 import { RetirementPayResult } from "@/types";
 
 export default function RetirementPayPage() {
+  const router = useRouter();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [averagePay, setAveragePay] = useState("");
@@ -77,6 +79,18 @@ export default function RetirementPayPage() {
   const formatNumber = (value: string) => {
     const number = value.replace(/[^0-9]/g, "");
     return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  const goToRetirementTax = () => {
+    if (!result) return;
+
+    // 퇴직급여액과 근속연수를 URL 파라미터로 전달
+    const params = new URLSearchParams({
+      retirementPay: result.totalAmount.toString(),
+      workingYears: result.workingYears.toString()
+    });
+
+    router.push(`/retirement-tax?${params.toString()}`);
   };
 
   return (
@@ -247,6 +261,20 @@ export default function RetirementPayPage() {
                     </div>
                   </div>
                 )}
+
+                {/* 퇴직소득세 계산 버튼 */}
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={goToRetirementTax}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-colors font-medium flex items-center justify-center"
+                  >
+                    <Calculator className="h-5 w-5 mr-2" />
+                    퇴직소득세 계산하기
+                  </button>
+                  <p className="text-xs text-gray-600 mt-2 text-center">
+                    계산된 퇴직급여를 바탕으로 퇴직소득세를 자동 계산합니다
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="text-center text-black py-8">

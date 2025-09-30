@@ -1,15 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, FileText, Calculator, Info, AlertCircle } from "lucide-react";
 import { RetirementTaxResult } from "@/types";
 
 export default function RetirementTaxPage() {
+  const searchParams = useSearchParams();
   const [retirementPay, setRetirementPay] = useState("");
   const [workingYears, setWorkingYears] = useState("");
   const [age, setAge] = useState("");
   const [result, setResult] = useState<RetirementTaxResult | null>(null);
+
+  // URL 파라미터에서 값을 받아와서 자동 입력
+  useEffect(() => {
+    const retirementPayParam = searchParams.get('retirementPay');
+    const workingYearsParam = searchParams.get('workingYears');
+
+    if (retirementPayParam) {
+      const formattedPay = parseInt(retirementPayParam).toLocaleString();
+      setRetirementPay(formattedPay);
+    }
+
+    if (workingYearsParam) {
+      setWorkingYears(workingYearsParam);
+    }
+  }, [searchParams]);
 
   const calculateRetirementTax = () => {
     if (!retirementPay || !workingYears) {
@@ -131,6 +148,21 @@ export default function RetirementTaxPage() {
       </header>
 
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* 퇴직금 계산에서 연결된 경우 안내문 표시 */}
+        {searchParams.get('retirementPay') && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <Info className="h-5 w-5 text-blue-600 mr-2" />
+              <div>
+                <p className="text-blue-800 font-medium">퇴직금 계산에서 연결되었습니다</p>
+                <p className="text-blue-700 text-sm">
+                  계산된 퇴직급여 정보가 자동으로 입력되었습니다. 추가 정보를 입력하여 퇴직소득세를 계산해보세요.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* 입력 폼 */}
           <div className="bg-white rounded-xl shadow-lg p-6">

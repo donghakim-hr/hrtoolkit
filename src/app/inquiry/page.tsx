@@ -316,7 +316,7 @@ export default function InquiryPage() {
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-2">💌 이메일 문의</h4>
               <p className="text-sm text-black mb-2">직접 이메일로 문의하시면 더 빠른 답변을 받으실 수 있습니다.</p>
-              <p className="text-blue-600 text-sm font-medium">support@hr-toolkit.com</p>
+              <p className="text-blue-600 text-sm font-medium">eastwater94@naver.com</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-2">⏰ 운영 시간</h4>
