@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, DollarSign, Calendar, Info, AlertTriangle, Calculator, Download, FileText, FileSpreadsheet, Save, Check } from "lucide-react";
+import { ArrowLeft, DollarSign, Calendar, Info, AlertTriangle, Calculator, Download, FileText, FileSpreadsheet, Save, Check, Plus, Minus } from "lucide-react";
 import { RetirementPayResult } from "@/types";
 import { exportRetirementPayToPDF, exportRetirementPayToExcel } from "@/utils/exportUtils";
 
@@ -12,6 +12,29 @@ interface UserSession {
   username: string;
   name: string;
   email: string;
+}
+
+interface MonthlyPayData {
+  month: number;
+  baseSalary: string;
+  allowances: string[];
+  totalAllowances: string;
+  monthlyTotal: string;
+}
+
+interface AveragePayResult {
+  month1: MonthlyPayData;
+  month2: MonthlyPayData;
+  month3: MonthlyPayData;
+  retirementDate: string;
+  totalWorkingDays: number;
+  totalSalary: number;
+  fixedBonus: string;
+  annualLeaveAllowance: string;
+  dailyFixedBonus: number;
+  dailyAnnualLeaveAllowance: number;
+  totalDailyPay: number;
+  averagePay: number;
 }
 
 export default function RetirementPayPage() {
@@ -26,6 +49,33 @@ export default function RetirementPayPage() {
   const [saveTitle, setSaveTitle] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // 평균임금 계산기 상태
+  const [retirementDate, setRetirementDate] = useState("");
+  const [month1Data, setMonth1Data] = useState<MonthlyPayData>({
+    month: 1,
+    baseSalary: "",
+    allowances: [""],
+    totalAllowances: "0",
+    monthlyTotal: "0"
+  });
+  const [month2Data, setMonth2Data] = useState<MonthlyPayData>({
+    month: 2,
+    baseSalary: "",
+    allowances: [""],
+    totalAllowances: "0",
+    monthlyTotal: "0"
+  });
+  const [month3Data, setMonth3Data] = useState<MonthlyPayData>({
+    month: 3,
+    baseSalary: "",
+    allowances: [""],
+    totalAllowances: "0",
+    monthlyTotal: "0"
+  });
+  const [fixedBonus, setFixedBonus] = useState("");
+  const [annualLeaveAllowance, setAnnualLeaveAllowance] = useState("");
+  const [averagePayResult, setAveragePayResult] = useState<AveragePayResult | null>(null);
 
   // 사용자 인증 상태 확인
   useEffect(() => {
@@ -149,6 +199,101 @@ export default function RetirementPayPage() {
     return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
+  // 평균임금 계산 함수들
+  const updateMonthData = (monthData: MonthlyPayData, setMonthData: (data: MonthlyPayData) => void, field: string, value: string, index?: number) => {
+    const newData = { ...monthData };
+
+    if (field === 'baseSalary') {
+      newData.baseSalary = formatNumber(value);
+    } else if (field === 'allowance' && index !== undefined) {
+      newData.allowances[index] = formatNumber(value);
+    }
+
+    // 수당 총합 계산
+    const totalAllowances = newData.allowances.reduce((sum, allowance) => {
+      return sum + (parseInt(allowance.replace(/,/g, '')) || 0);
+    }, 0);
+    newData.totalAllowances = totalAllowances.toLocaleString();
+
+    // 월 총액 계산
+    const baseSalaryNum = parseInt(newData.baseSalary.replace(/,/g, '')) || 0;
+    newData.monthlyTotal = (baseSalaryNum + totalAllowances).toLocaleString();
+
+    setMonthData(newData);
+  };
+
+  const addAllowance = (monthData: MonthlyPayData, setMonthData: (data: MonthlyPayData) => void) => {
+    const newData = { ...monthData };
+    newData.allowances.push("");
+    setMonthData(newData);
+  };
+
+  const removeAllowance = (monthData: MonthlyPayData, setMonthData: (data: MonthlyPayData) => void, index: number) => {
+    if (monthData.allowances.length <= 1) return;
+    const newData = { ...monthData };
+    newData.allowances.splice(index, 1);
+
+    // 수당 총합 다시 계산
+    const totalAllowances = newData.allowances.reduce((sum, allowance) => {
+      return sum + (parseInt(allowance.replace(/,/g, '')) || 0);
+    }, 0);
+    newData.totalAllowances = totalAllowances.toLocaleString();
+
+    // 월 총액 다시 계산
+    const baseSalaryNum = parseInt(newData.baseSalary.replace(/,/g, '')) || 0;
+    newData.monthlyTotal = (baseSalaryNum + totalAllowances).toLocaleString();
+
+    setMonthData(newData);
+  };
+
+  const calculateAveragePay = () => {
+    if (!retirementDate || !month1Data.baseSalary || !month2Data.baseSalary || !month3Data.baseSalary) {
+      alert("퇴사일과 3개월 급여 정보를 모두 입력해주세요.");
+      return;
+    }
+
+    // 3개월 총 급여 계산
+    const month1Total = parseInt(month1Data.monthlyTotal.replace(/,/g, '')) || 0;
+    const month2Total = parseInt(month2Data.monthlyTotal.replace(/,/g, '')) || 0;
+    const month3Total = parseInt(month3Data.monthlyTotal.replace(/,/g, '')) || 0;
+    const totalSalary = month1Total + month2Total + month3Total;
+
+    // 3개월 총 일수 (90일)
+    const totalWorkingDays = 90;
+
+    // 기본 평균임금 (일급)
+    const basicAveragePay = totalSalary / totalWorkingDays;
+
+    // 고정상여금 일할 계산
+    const fixedBonusNum = parseInt(fixedBonus.replace(/,/g, '')) || 0;
+    const dailyFixedBonus = fixedBonusNum / 365;
+
+    // 연차수당 일할 계산
+    const annualLeaveAllowanceNum = parseInt(annualLeaveAllowance.replace(/,/g, '')) || 0;
+    const dailyAnnualLeaveAllowance = annualLeaveAllowanceNum / 365;
+
+    // 최종 평균임금 (일급)
+    const totalDailyPay = basicAveragePay + dailyFixedBonus + dailyAnnualLeaveAllowance;
+
+    setAveragePayResult({
+      month1: month1Data,
+      month2: month2Data,
+      month3: month3Data,
+      retirementDate,
+      totalWorkingDays,
+      totalSalary,
+      fixedBonus,
+      annualLeaveAllowance,
+      dailyFixedBonus,
+      dailyAnnualLeaveAllowance,
+      totalDailyPay,
+      averagePay: Math.round(totalDailyPay)
+    });
+
+    // 퇴직급여 계산기에 평균임금 자동 입력
+    setAveragePay(Math.round(totalDailyPay * 30).toLocaleString());
+  };
+
   const goToRetirementTax = () => {
     if (!result) return;
 
@@ -182,8 +327,8 @@ export default function RetirementPayPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* 입력 폼 */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-bold text-black mb-6 flex items-center">
@@ -255,6 +400,302 @@ export default function RetirementPayPage() {
               >
                 퇴직급여 계산하기
               </button>
+            </div>
+          </div>
+
+          {/* 평균임금 계산기 */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-2xl font-bold text-black mb-6 flex items-center">
+              <Calculator className="h-6 w-6 mr-3 text-blue-600" />
+              평균임금 계산기
+            </h2>
+
+            <div className="space-y-4">
+              {/* 퇴사일 */}
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  퇴사일
+                </label>
+                <input
+                  type="date"
+                  value={retirementDate}
+                  onChange={(e) => setRetirementDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                />
+              </div>
+
+              {/* 퇴사 직전 3개월 급여 */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-black">퇴사 직전 3개월 급여</h3>
+
+                {/* 3개월차 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-black mb-3">3개월 전 (첫 번째 달)</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">고정급여 (계약)</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={month3Data.baseSalary}
+                          onChange={(e) => updateMonthData(month3Data, setMonth3Data, 'baseSalary', e.target.value)}
+                          placeholder="예: 2,500,000"
+                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                        />
+                        <span className="absolute right-3 top-2 text-black">원</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">수당</label>
+                      {month3Data.allowances.map((allowance, index) => (
+                        <div key={index} className="flex items-center gap-2 mb-2">
+                          <div className="relative flex-1">
+                            <input
+                              type="text"
+                              value={allowance}
+                              onChange={(e) => updateMonthData(month3Data, setMonth3Data, 'allowance', e.target.value, index)}
+                              placeholder={`수당${index + 1}`}
+                              className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                            />
+                            <span className="absolute right-3 top-2 text-black">원</span>
+                          </div>
+                          {month3Data.allowances.length > 1 && (
+                            <button
+                              onClick={() => removeAllowance(month3Data, setMonth3Data, index)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => addAllowance(month3Data, setMonth3Data)}
+                        className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        수당 추가
+                      </button>
+                    </div>
+
+                    <div className="bg-gray-50 p-3 rounded">
+                      <div className="flex justify-between text-sm">
+                        <span>월 총액:</span>
+                        <span className="font-medium">{month3Data.monthlyTotal}원</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2개월차 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-black mb-3">2개월 전 (두 번째 달)</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">고정급여 (계약)</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={month2Data.baseSalary}
+                          onChange={(e) => updateMonthData(month2Data, setMonth2Data, 'baseSalary', e.target.value)}
+                          placeholder="예: 2,500,000"
+                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                        />
+                        <span className="absolute right-3 top-2 text-black">원</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">수당</label>
+                      {month2Data.allowances.map((allowance, index) => (
+                        <div key={index} className="flex items-center gap-2 mb-2">
+                          <div className="relative flex-1">
+                            <input
+                              type="text"
+                              value={allowance}
+                              onChange={(e) => updateMonthData(month2Data, setMonth2Data, 'allowance', e.target.value, index)}
+                              placeholder={`수당${index + 1}`}
+                              className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                            />
+                            <span className="absolute right-3 top-2 text-black">원</span>
+                          </div>
+                          {month2Data.allowances.length > 1 && (
+                            <button
+                              onClick={() => removeAllowance(month2Data, setMonth2Data, index)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => addAllowance(month2Data, setMonth2Data)}
+                        className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        수당 추가
+                      </button>
+                    </div>
+
+                    <div className="bg-gray-50 p-3 rounded">
+                      <div className="flex justify-between text-sm">
+                        <span>월 총액:</span>
+                        <span className="font-medium">{month2Data.monthlyTotal}원</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 1개월차 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-black mb-3">1개월 전 (세 번째 달)</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">고정급여 (계약)</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={month1Data.baseSalary}
+                          onChange={(e) => updateMonthData(month1Data, setMonth1Data, 'baseSalary', e.target.value)}
+                          placeholder="예: 2,500,000"
+                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                        />
+                        <span className="absolute right-3 top-2 text-black">원</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">수당</label>
+                      {month1Data.allowances.map((allowance, index) => (
+                        <div key={index} className="flex items-center gap-2 mb-2">
+                          <div className="relative flex-1">
+                            <input
+                              type="text"
+                              value={allowance}
+                              onChange={(e) => updateMonthData(month1Data, setMonth1Data, 'allowance', e.target.value, index)}
+                              placeholder={`수당${index + 1}`}
+                              className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                            />
+                            <span className="absolute right-3 top-2 text-black">원</span>
+                          </div>
+                          {month1Data.allowances.length > 1 && (
+                            <button
+                              onClick={() => removeAllowance(month1Data, setMonth1Data, index)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => addAllowance(month1Data, setMonth1Data)}
+                        className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        수당 추가
+                      </button>
+                    </div>
+
+                    <div className="bg-gray-50 p-3 rounded">
+                      <div className="flex justify-between text-sm">
+                        <span>월 총액:</span>
+                        <span className="font-medium">{month1Data.monthlyTotal}원</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 연간 지급 항목 */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-black">연간 지급 항목 (선택)</h3>
+
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    고정상여금 (연간)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={fixedBonus}
+                      onChange={(e) => setFixedBonus(formatNumber(e.target.value))}
+                      placeholder="예: 5,000,000"
+                      className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                    />
+                    <span className="absolute right-3 top-2 text-black">원</span>
+                  </div>
+                  <p className="text-xs text-black mt-1">연간 고정상여금을 입력하세요</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    연차수당 (연간)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={annualLeaveAllowance}
+                      onChange={(e) => setAnnualLeaveAllowance(formatNumber(e.target.value))}
+                      placeholder="예: 1,000,000"
+                      className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                    />
+                    <span className="absolute right-3 top-2 text-black">원</span>
+                  </div>
+                  <p className="text-xs text-black mt-1">연간 연차수당을 입력하세요</p>
+                </div>
+              </div>
+
+              <button
+                onClick={calculateAveragePay}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                평균임금 계산하기
+              </button>
+
+              {/* 평균임금 계산 결과 */}
+              {averagePayResult && (
+                <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-3">평균임금 계산 결과</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>3개월 총 급여:</span>
+                      <span className="font-medium">{averagePayResult.totalSalary.toLocaleString()}원</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>기본 평균임금 (일급):</span>
+                      <span className="font-medium">{Math.round(averagePayResult.totalSalary / 90).toLocaleString()}원</span>
+                    </div>
+                    {averagePayResult.dailyFixedBonus > 0 && (
+                      <div className="flex justify-between">
+                        <span>고정상여금 (일할):</span>
+                        <span className="font-medium">{Math.round(averagePayResult.dailyFixedBonus).toLocaleString()}원</span>
+                      </div>
+                    )}
+                    {averagePayResult.dailyAnnualLeaveAllowance > 0 && (
+                      <div className="flex justify-between">
+                        <span>연차수당 (일할):</span>
+                        <span className="font-medium">{Math.round(averagePayResult.dailyAnnualLeaveAllowance).toLocaleString()}원</span>
+                      </div>
+                    )}
+                    <div className="border-t border-blue-300 pt-2 mt-2">
+                      <div className="flex justify-between font-semibold text-blue-800">
+                        <span>최종 평균임금 (일급):</span>
+                        <span>{averagePayResult.averagePay.toLocaleString()}원</span>
+                      </div>
+                      <div className="flex justify-between font-semibold text-blue-800">
+                        <span>월급 환산:</span>
+                        <span>{Math.round(averagePayResult.averagePay * 30).toLocaleString()}원</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-blue-700 mt-3">
+                    * 계산된 평균임금이 퇴직급여 계산기에 자동으로 입력됩니다
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

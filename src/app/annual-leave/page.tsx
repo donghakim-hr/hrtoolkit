@@ -407,7 +407,7 @@ export default function AnnualLeavePage() {
                         handleDateInput(e.target.value, setStartDay, 2, calcYearRef);
                         updateStartDate(startYear, startMonth, e.target.value.replace(/\D/g, ''));
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
+                      className="w-full px-3 py-2 border border-black-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
                       maxLength={2}
                     />
                     <p className="text-xs text-black text-center mt-1">일</p>
@@ -422,7 +422,7 @@ export default function AnnualLeavePage() {
                 <select
                   value={accountingYearStart}
                   onChange={(e) => setAccountingYearStart(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-green-50"
+                  className="w-full px-3 py-2 border border-black mb-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-green-50"
                 >
                   <option value="01-01">1월 1일 (일반적) ✓</option>
                   <option value="04-01">4월 1일</option>
