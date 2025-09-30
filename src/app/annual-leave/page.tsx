@@ -151,6 +151,9 @@ export default function AnnualLeavePage() {
       const workingYearsAtYear = Math.floor(workingDaysAtYear / 365.25);
       const workingMonthsAtYear = Math.floor(workingDaysAtYear / 30.4375);
 
+      // 입사일 기준 연차 발생일 계산
+      const hireAnniversaryDate = new Date(year, start.getMonth(), start.getDate());
+
       // 입사일 기준 연차 계산 (해당 연도 말 기준)
       let hireLeave = 0;
       let hireAdditional = 0;
@@ -195,11 +198,31 @@ export default function AnnualLeavePage() {
       const accTotalLeave = accLeave + accAdditional;
       const difference = hireTotalLeave - accTotalLeave;
 
+      // 연차 발생일 정보 생성
       let description = "";
+      let hireDateInfo = "";
+      let accountingDateInfo = "";
+
       if (workingYearsAtYear < 1) {
         description = `입사 ${workingMonthsAtYear}개월차`;
+        hireDateInfo = "매월 1일씩 발생";
       } else {
         description = `근속 ${workingYearsAtYear}년차`;
+        // 입사일이 해당 연도에 있고, 계산일까지 도달했으면 발생일 표시
+        if (hireAnniversaryDate <= actualEndDate && hireAnniversaryDate >= new Date(year, 0, 1)) {
+          hireDateInfo = `${hireAnniversaryDate.toLocaleDateString('ko-KR')} 발생`;
+        } else if (year === startYear) {
+          hireDateInfo = `${start.toLocaleDateString('ko-KR')} 입사`;
+        } else {
+          hireDateInfo = `${hireAnniversaryDate.toLocaleDateString('ko-KR')} 예정`;
+        }
+      }
+
+      // 회계연도 기준 발생일 정보
+      if (effectiveAccountingStart <= actualEndDate && effectiveAccountingStart >= new Date(year, 0, 1)) {
+        accountingDateInfo = `${effectiveAccountingStart.toLocaleDateString('ko-KR')} 발생`;
+      } else if (accountingYearStartDate <= actualEndDate) {
+        accountingDateInfo = `${accountingYearStartDate.toLocaleDateString('ko-KR')} 예정`;
       }
 
       yearlyHistory.push({
@@ -212,7 +235,9 @@ export default function AnnualLeavePage() {
         accountingAdditional: accAdditional,
         accountingTotalLeave: accTotalLeave,
         difference,
-        description
+        description,
+        hireDateInfo,
+        accountingDateInfo
       });
     }
 
@@ -531,6 +556,11 @@ export default function AnnualLeavePage() {
                                 <div className="text-xs text-blue-500">
                                   {yearData.hireBasedLeave + (yearData.hireBasedAdditional > 0 ? ` + ${yearData.hireBasedAdditional}` : '')}
                                 </div>
+                                {yearData.hireDateInfo && (
+                                  <div className="text-xs text-blue-400 mt-1">
+                                    {yearData.hireDateInfo}
+                                  </div>
+                                )}
                               </td>
                               <td className="py-2 px-2 text-center">
                                 <div className="text-purple-600 font-medium">
@@ -539,6 +569,11 @@ export default function AnnualLeavePage() {
                                 <div className="text-xs text-purple-500">
                                   {yearData.accountingLeave + (yearData.accountingAdditional > 0 ? ` + ${yearData.accountingAdditional}` : '')}
                                 </div>
+                                {yearData.accountingDateInfo && (
+                                  <div className="text-xs text-purple-400 mt-1">
+                                    {yearData.accountingDateInfo}
+                                  </div>
+                                )}
                               </td>
                               <td className="py-2 px-2 text-center">
                                 <span className={`font-medium ${

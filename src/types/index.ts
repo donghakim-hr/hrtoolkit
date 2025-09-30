@@ -10,6 +10,8 @@ export interface YearlyLeaveInfo {
   accountingTotalLeave: number;
   difference: number;
   description: string;
+  hireDateInfo?: string;
+  accountingDateInfo?: string;
 }
 
 // 연차 계산 결과 타입
