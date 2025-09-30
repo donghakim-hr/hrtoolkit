@@ -163,7 +163,7 @@ export default function FindAccountPage() {
                     등록된 이메일 주소
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                     <input
                       id="email"
                       name="email"
@@ -214,7 +214,7 @@ export default function FindAccountPage() {
                     사용자명
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                     <input
                       id="username"
                       name="username"
@@ -234,7 +234,7 @@ export default function FindAccountPage() {
                     새 비밀번호
                   </label>
                   <div className="relative">
-                    <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                     <input
                       id="newPassword"
                       name="newPassword"

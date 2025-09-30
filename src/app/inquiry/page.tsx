@@ -151,14 +151,14 @@ export default function InquiryPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center text-black hover:text-gray-700 transition-colors">
+              <Link href="/" className="flex items-center text-black hover:text-black transition-colors">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 홈으로
               </Link>
               <div className="h-6 w-px bg-gray-300"></div>
               <div className="flex items-center space-x-3">
                 <MessageSquare className="h-6 w-6 text-purple-600" />
-                <h1 className="text-xl font-bold text-gray-900">1:1 문의</h1>
+                <h1 className="text-xl font-bold text-black">1:1 문의</h1>
               </div>
             </div>
             <div className="text-sm text-black">
@@ -167,7 +167,7 @@ export default function InquiryPage() {
                   {userSession.name}님으로 로그인됨
                 </span>
               ) : (
-                <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full">
+                <span className="bg-gray-100 text-black px-3 py-1 rounded-full">
                   비회원으로 문의
                 </span>
               )}
@@ -179,7 +179,7 @@ export default function InquiryPage() {
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* 안내 */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl font-bold text-black mb-4">
             💬 1:1 문의하기
           </h2>
           <p className="text-black mb-4">
@@ -213,7 +213,7 @@ export default function InquiryPage() {
                   이름 *
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                   <input
                     id="name"
                     name="name"
@@ -234,7 +234,7 @@ export default function InquiryPage() {
                   이메일 * {!userSession && <span className="text-red-500">(답변 받을 이메일)</span>}
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                   <input
                     id="email"
                     name="email"
@@ -257,7 +257,7 @@ export default function InquiryPage() {
                 문의 제목 *
               </label>
               <div className="relative">
-                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                 <input
                   id="subject"
                   name="subject"
@@ -309,17 +309,17 @@ export default function InquiryPage() {
 
         {/* 추가 안내 */}
         <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">
+          <h3 className="text-lg font-bold text-black mb-4">
             📞 기타 문의 방법
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-2">💌 이메일 문의</h4>
+              <h4 className="font-medium text-black mb-2">💌 이메일 문의</h4>
               <p className="text-sm text-black mb-2">직접 이메일로 문의하시면 더 빠른 답변을 받으실 수 있습니다.</p>
               <p className="text-blue-600 text-sm font-medium">eastwater94@naver.com</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-2">⏰ 운영 시간</h4>
+              <h4 className="font-medium text-black mb-2">⏰ 운영 시간</h4>
               <p className="text-sm text-black mb-1">평일: 09:00 - 18:00</p>
               <p className="text-sm text-black mb-1">토요일: 09:00 - 12:00</p>
               <p className="text-sm text-black">일요일, 공휴일: 휴무</p>

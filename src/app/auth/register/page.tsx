@@ -219,7 +219,7 @@ export default function RegisterPage() {
                 이름 *
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                 <input
                   id="name"
                   name="name"
@@ -240,7 +240,7 @@ export default function RegisterPage() {
                 생년월일 *
               </label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                 <input
                   id="birthDate"
                   name="birthDate"
@@ -260,7 +260,7 @@ export default function RegisterPage() {
                 이메일주소 *
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                 <input
                   id="email"
                   name="email"
@@ -302,7 +302,7 @@ export default function RegisterPage() {
                 닉네임 *
               </label>
               <div className="relative">
-                <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                 <input
                   id="nickname"
                   name="nickname"
@@ -323,7 +323,7 @@ export default function RegisterPage() {
                 아이디 *
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                 <input
                   id="username"
                   name="username"
@@ -344,7 +344,7 @@ export default function RegisterPage() {
                 비밀번호 *
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                 <input
                   id="password"
                   name="password"
@@ -359,7 +359,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black hover:text-black"
                   disabled={loading}
                 >
                   {showPassword ? (
@@ -377,7 +377,7 @@ export default function RegisterPage() {
                 비밀번호 확인 *
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -392,7 +392,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black hover:text-black"
                   disabled={loading}
                 >
                   {showConfirmPassword ? (

@@ -133,7 +133,7 @@ export default function FreeBoard() {
             <div className="flex items-center space-x-4">
               <Link
                 href="/"
-                className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                className="flex items-center text-black hover:text-blue-600 transition-colors"
               >
                 <Home className="h-5 w-5 mr-1" />
                 <span className="text-sm font-medium">홈</span>
@@ -242,7 +242,7 @@ export default function FreeBoard() {
         <div className="space-y-4">
           {posts.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-              <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <MessageSquare className="h-12 w-12 text-black mx-auto mb-4" />
               <p className="text-black mb-2">아직 작성된 글이 없습니다</p>
               <p className="text-sm text-black">첫 번째 글을 작성해보세요!</p>
             </div>

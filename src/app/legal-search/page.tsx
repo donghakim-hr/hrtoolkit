@@ -122,14 +122,14 @@ export default function LegalSearchPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center text-black hover:text-gray-700 transition-colors">
+              <Link href="/" className="flex items-center text-black hover:text-black transition-colors">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 홈으로
               </Link>
               <div className="h-6 w-px bg-gray-300"></div>
               <div className="flex items-center space-x-3">
                 <Search className="h-6 w-6 text-orange-600" />
-                <h1 className="text-xl font-bold text-gray-900">법령 조문 검색</h1>
+                <h1 className="text-xl font-bold text-black">법령 조문 검색</h1>
               </div>
             </div>
           </div>
@@ -177,7 +177,7 @@ export default function LegalSearchPage() {
         <div className="space-y-6">
           {searchTerm && (
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-bold text-black">
                 검색 결과 ({searchResults.length}건)
               </h2>
               {searchResults.length > 0 && (
@@ -210,7 +210,7 @@ export default function LegalSearchPage() {
                           {result.article}
                         </span>
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">
+                      <h3 className="text-lg font-bold text-black mb-2">
                         {highlightText(result.title, searchTerm)}
                       </h3>
                     </div>
@@ -267,7 +267,7 @@ export default function LegalSearchPage() {
         {/* 즐겨찾기 */}
         {favorites.length > 0 && (
           <div className="mt-12 bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <h3 className="text-lg font-bold text-black mb-4 flex items-center">
               <Bookmark className="h-5 w-5 mr-2 text-yellow-600" />
               즐겨찾기 ({favorites.length}개)
             </h3>
@@ -287,7 +287,7 @@ export default function LegalSearchPage() {
                 return (
                   <div key={favoriteId} className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-black">
                         <a
                           href={getLawUrl(lawName, lawInfo.법령번호)}
                           target="_blank"
@@ -317,14 +317,14 @@ export default function LegalSearchPage() {
 
         {/* 법령 정보 */}
         <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+          <h3 className="text-lg font-bold text-black mb-4 flex items-center">
             <FileText className="h-5 w-5 mr-2 text-orange-600" />
             수록된 법령 정보
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {Object.entries(legalData).map(([lawName, lawInfo]) => (
               <div key={lawName} className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">
+                <h4 className="font-medium text-black mb-2">
                   <a
                     href={getLawUrl(lawName, lawInfo.법령번호)}
                     target="_blank"

@@ -3,9 +3,16 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, FileText, Calculator, Info, AlertCircle, Download, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, FileText, Calculator, Info, AlertCircle, Download, FileSpreadsheet, Save, Check } from "lucide-react";
 import { RetirementTaxResult } from "@/types";
 import { exportRetirementTaxToPDF, exportRetirementTaxToExcel } from "@/utils/exportUtils";
+
+interface UserSession {
+  userId: string;
+  username: string;
+  name: string;
+  email: string;
+}
 
 export default function RetirementTaxPage() {
   const searchParams = useSearchParams();
@@ -13,6 +20,11 @@ export default function RetirementTaxPage() {
   const [workingYears, setWorkingYears] = useState("");
   const [age, setAge] = useState("");
   const [result, setResult] = useState<RetirementTaxResult | null>(null);
+  const [userSession, setUserSession] = useState<UserSession | null>(null);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [saveTitle, setSaveTitle] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // URL 파라미터에서 값을 받아와서 자동 입력
   useEffect(() => {
@@ -28,6 +40,57 @@ export default function RetirementTaxPage() {
       setWorkingYears(workingYearsParam);
     }
   }, [searchParams]);
+
+  // 사용자 인증 상태 확인
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch("/api/auth/me");
+      if (response.ok) {
+        const data = await response.json();
+        setUserSession(data.user);
+      }
+    } catch (error) {
+      console.error("인증 상태 확인 오류:", error);
+    }
+  };
+
+  // 계산 결과 저장
+  const saveCalculation = async () => {
+    if (!result || !userSession) return;
+
+    setSaving(true);
+    try {
+      const response = await fetch('/api/calculations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'retirement-tax',
+          title: saveTitle || `퇴직소득세 계산 - ${result.retirementAmount.toLocaleString()}원`,
+          data: result
+        })
+      });
+
+      if (response.ok) {
+        setSaveSuccess(true);
+        setShowSaveDialog(false);
+        setSaveTitle("");
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        alert('저장 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('저장 오류:', error);
+      alert('저장 중 오류가 발생했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const calculateRetirementTax = () => {
     if (!retirementPay || !workingYears) {
@@ -134,14 +197,14 @@ export default function RetirementTaxPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center text-black hover:text-gray-700 transition-colors">
+              <Link href="/" className="flex items-center text-black hover:text-black transition-colors">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 홈으로
               </Link>
               <div className="h-6 w-px bg-gray-300"></div>
               <div className="flex items-center space-x-3">
                 <FileText className="h-6 w-6 text-purple-600" />
-                <h1 className="text-xl font-bold text-gray-900">퇴직소득세 계산기</h1>
+                <h1 className="text-xl font-bold text-black">퇴직소득세 계산기</h1>
               </div>
             </div>
           </div>
@@ -167,7 +230,7 @@ export default function RetirementTaxPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* 입력 폼 */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+            <h2 className="text-2xl font-bold text-black mb-6 flex items-center">
               <Calculator className="h-6 w-6 mr-3 text-purple-600" />
               정보 입력
             </h2>
@@ -238,7 +301,7 @@ export default function RetirementTaxPage() {
 
           {/* 결과 표시 */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+            <h2 className="text-2xl font-bold text-black mb-6 flex items-center">
               <FileText className="h-6 w-6 mr-3 text-purple-600" />
               계산 결과
             </h2>
@@ -305,8 +368,38 @@ export default function RetirementTaxPage() {
                   </div>
                 )}
 
-                {/* 출력 버튼들 */}
+                {/* 저장 및 출력 버튼들 */}
                 <div className="mt-6 pt-4 border-t border-gray-200">
+                  {/* 저장 성공 메시지 */}
+                  {saveSuccess && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center">
+                      <Check className="h-5 w-5 text-green-600 mr-2" />
+                      <span className="text-green-800">계산 결과가 성공적으로 저장되었습니다!</span>
+                    </div>
+                  )}
+
+                  {/* 저장 버튼 (로그인 시에만 표시) */}
+                  {userSession && (
+                    <div className="mb-4">
+                      <h4 className="font-medium text-black mb-3 flex items-center">
+                        <Save className="h-5 w-5 mr-2 text-purple-600" />
+                        계산 결과 저장
+                      </h4>
+                      <button
+                        onClick={() => setShowSaveDialog(true)}
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors font-medium flex items-center justify-center"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        내 계정에 저장하기
+                      </button>
+                      <p className="text-xs text-black-600 mt-2">
+                        계산 결과를 내 계정에 저장하여 나중에 다시 확인할 수 있습니다
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 출력 버튼들 */}
+                  <div>
                   <h4 className="font-medium text-black mb-3 flex items-center">
                     <Download className="h-5 w-5 mr-2 text-purple-600" />
                     계산 결과 출력
@@ -327,7 +420,7 @@ export default function RetirementTaxPage() {
                       Excel 다운로드
                     </button>
                   </div>
-                  <p className="text-xs text-gray-600 mt-2">
+                  <p className="text-xs text-black-600 mt-2">
                     계산 결과를 PDF 또는 Excel 파일로 저장할 수 있습니다
                   </p>
                 </div>
@@ -341,9 +434,59 @@ export default function RetirementTaxPage() {
           </div>
         </div>
 
+        {/* 저장 다이얼로그 */}
+        {showSaveDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+              <h3 className="text-lg font-semibold text-black mb-4">계산 결과 저장</h3>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-black mb-2">
+                  저장할 제목
+                </label>
+                <input
+                  type="text"
+                  value={saveTitle}
+                  onChange={(e) => setSaveTitle(e.target.value)}
+                  placeholder={`퇴직소득세 계산 - ${result?.retirementAmount.toLocaleString()}원`}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowSaveDialog(false);
+                    setSaveTitle("");
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-black rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={saving}
+                >
+                  취소
+                </button>
+                <button
+                  onClick={saveCalculation}
+                  disabled={saving}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      저장 중...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      저장
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 법적 근거 */}
         <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+          <h3 className="text-lg font-bold text-black mb-4 flex items-center">
             <Info className="h-5 w-5 mr-2 text-purple-600" />
             법적 근거 및 계산 방법
           </h3>

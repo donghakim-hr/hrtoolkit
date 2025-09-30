@@ -113,13 +113,19 @@ export default function UserDashboardPage() {
               </div>
             </div>
 
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 text-black hover:text-red-600 transition-colors"
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="text-sm">로그아웃</span>
-            </button>
+            <div className="flex items-center space-x-4">
+              <Link href="/my-page" className="flex items-center space-x-2 text-black hover:text-blue-600 transition-colors">
+                <User className="h-5 w-5" />
+                <span className="text-sm">마이페이지</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 text-black hover:text-red-600 transition-colors"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="text-sm">로그아웃</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -154,22 +160,22 @@ export default function UserDashboardPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">이름</label>
+                  <label className="text-sm text-black block mb-1">이름</label>
                   <p className="text-black font-medium">{userInfo.name}</p>
                 </div>
 
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">사용자명</label>
+                  <label className="text-sm text-black block mb-1">사용자명</label>
                   <p className="text-black font-medium">{userInfo.username}</p>
                 </div>
 
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">이메일</label>
+                  <label className="text-sm text-black block mb-1">이메일</label>
                   <p className="text-black font-medium">{userInfo.email}</p>
                 </div>
 
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">가입일</label>
+                  <label className="text-sm text-black block mb-1">가입일</label>
                   <p className="text-black font-medium">{formatDate(userInfo.createdAt)}</p>
                 </div>
               </div>
@@ -195,7 +201,7 @@ export default function UserDashboardPage() {
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-black mb-1">연차 계산기</h3>
-                  <p className="text-gray-600 text-sm">입사일 기준 연차 산정</p>
+                  <p className="text-black text-sm">입사일 기준 연차 산정</p>
                 </div>
               </Link>
 
@@ -208,7 +214,7 @@ export default function UserDashboardPage() {
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-black mb-1">퇴직급여 계산기</h3>
-                  <p className="text-gray-600 text-sm">퇴직급여 정확한 산정</p>
+                  <p className="text-black text-sm">퇴직급여 정확한 산정</p>
                 </div>
               </Link>
 
@@ -221,7 +227,7 @@ export default function UserDashboardPage() {
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-black mb-1">퇴직소득세 계산기</h3>
-                  <p className="text-gray-600 text-sm">세금 및 실수령액</p>
+                  <p className="text-black text-sm">세금 및 실수령액</p>
                 </div>
               </Link>
 
@@ -231,7 +237,7 @@ export default function UserDashboardPage() {
                     <FileText className="h-8 w-8 text-orange-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-black mb-1">법령 조문 검색</h3>
-                  <p className="text-gray-600 text-sm">관련 법령 빠른 검색</p>
+                  <p className="text-black text-sm">관련 법령 빠른 검색</p>
                 </div>
               </Link>
             </div>
@@ -246,18 +252,18 @@ export default function UserDashboardPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
-                    <Clock className="h-4 w-4 text-gray-600 mr-3" />
+                    <Clock className="h-4 w-4 text-black mr-3" />
                     <span className="text-black text-sm">계산 히스토리 기능 준비 중</span>
                   </div>
-                  <span className="text-xs text-gray-500">곧 출시</span>
+                  <span className="text-xs text-black">곧 출시</span>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
-                    <Star className="h-4 w-4 text-gray-600 mr-3" />
+                    <Star className="h-4 w-4 text-black mr-3" />
                     <span className="text-black text-sm">즐겨찾기 기능 준비 중</span>
                   </div>
-                  <span className="text-xs text-gray-500">곧 출시</span>
+                  <span className="text-xs text-black">곧 출시</span>
                 </div>
               </div>
 

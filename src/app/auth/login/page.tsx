@@ -94,7 +94,7 @@ export default function LoginPage() {
                 사용자명
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                 <input
                   id="username"
                   name="username"
@@ -115,7 +115,7 @@ export default function LoginPage() {
                 비밀번호
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
                 <input
                   id="password"
                   name="password"
@@ -130,7 +130,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black hover:text-black"
                   disabled={loading}
                 >
                   {showPassword ? (
@@ -191,7 +191,7 @@ export default function LoginPage() {
 
         {/* 관리자 로그인 링크 */}
         <div className="text-center">
-          <Link href="/admin/login" className="text-xs text-gray-500 hover:text-gray-700">
+          <Link href="/admin/login" className="text-xs text-black hover:text-black">
             관리자로 로그인
           </Link>
         </div>

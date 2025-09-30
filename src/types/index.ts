@@ -114,3 +114,14 @@ export interface Notice {
 
 // 1:1 문의 타입 재내보내기
 export type { Inquiry, CreateInquiryRequest } from './inquiry';
+
+// 저장된 계산 결과 타입
+export interface SavedCalculation {
+  id: string;
+  userId: string;
+  type: 'annual-leave' | 'retirement-pay' | 'retirement-tax';
+  title: string;
+  data: AnnualLeaveResult | RetirementPayResult | RetirementTaxResult;
+  createdAt: string;
+  updatedAt: string;
+}

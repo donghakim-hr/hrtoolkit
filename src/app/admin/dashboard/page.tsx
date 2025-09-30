@@ -372,7 +372,7 @@ export default function AdminDashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center text-black hover:text-gray-900 transition-colors">
+              <Link href="/" className="flex items-center text-black hover:text-black transition-colors">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 홈으로
               </Link>
@@ -384,7 +384,7 @@ export default function AdminDashboardPage() {
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-2 text-black hover:text-gray-900 transition-colors"
+              className="flex items-center space-x-2 text-black hover:text-black transition-colors"
             >
               <LogOut className="h-5 w-5" />
               <span>로그아웃</span>
@@ -419,7 +419,7 @@ export default function AdminDashboardPage() {
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'notices'
                     ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-black hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-black hover:text-black hover:border-gray-300'
                 }`}
               >
                 <Bell className="h-4 w-4 inline mr-2" />
@@ -430,7 +430,7 @@ export default function AdminDashboardPage() {
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'users'
                     ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-black hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-black hover:text-black hover:border-gray-300'
                 }`}
               >
                 <Users className="h-4 w-4 inline mr-2" />
@@ -441,7 +441,7 @@ export default function AdminDashboardPage() {
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'posts'
                     ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-black hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-black hover:text-black hover:border-gray-300'
                 }`}
               >
                 <MessageSquare className="h-4 w-4 inline mr-2" />
@@ -452,7 +452,7 @@ export default function AdminDashboardPage() {
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'faq'
                     ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-black hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-black hover:text-black hover:border-gray-300'
                 }`}
               >
                 <HelpCircle className="h-4 w-4 inline mr-2" />
@@ -731,7 +731,7 @@ export default function AdminDashboardPage() {
               </table>
               {users.length === 0 && (
                 <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <Users className="h-12 w-12 text-black mx-auto mb-4" />
                   <p className="text-black">등록된 회원이 없습니다.</p>
                 </div>
               )}
@@ -808,7 +808,7 @@ export default function AdminDashboardPage() {
               ))}
               {posts.length === 0 && (
                 <div className="text-center py-8">
-                  <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <MessageSquare className="h-12 w-12 text-black mx-auto mb-4" />
                   <p className="text-black">
                     {selectedBoard === 'all'
                       ? '작성된 게시글이 없습니다.'
@@ -854,7 +854,7 @@ export default function AdminDashboardPage() {
                 </div>
               ) : faqData.length === 0 ? (
                 <div className="text-center py-8">
-                  <HelpCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <HelpCircle className="h-12 w-12 text-black mx-auto mb-4" />
                   <p className="text-black mb-2">등록된 FAQ가 없습니다.</p>
                   <p className="text-sm text-black">새로운 FAQ 카테고리와 항목을 추가해보세요.</p>
                 </div>
@@ -871,8 +871,8 @@ export default function AdminDashboardPage() {
                             {category.icon === 'Users' && <Users className="h-5 w-5" />}
                             {!['Calendar', 'Clock', 'DollarSign', 'Users'].includes(category.icon) && <HelpCircle className="h-5 w-5" />}
                           </span>
-                          <h3 className="font-semibold text-gray-900">{category.category}</h3>
-                          <span className="ml-2 text-sm text-gray-600">({category.items.length}개 항목)</span>
+                          <h3 className="font-semibold text-black">{category.category}</h3>
+                          <span className="ml-2 text-sm text-black">({category.items.length}개 항목)</span>
                         </div>
                         <div className="space-x-2">
                           <button
@@ -884,7 +884,7 @@ export default function AdminDashboardPage() {
                           >
                             항목 추가
                           </button>
-                          <button className="text-gray-600 hover:text-gray-800 text-sm">
+                          <button className="text-black hover:text-black text-sm">
                             수정
                           </button>
                           <button className="text-red-600 hover:text-red-800 text-sm">
@@ -900,7 +900,7 @@ export default function AdminDashboardPage() {
                               // 수정 폼
                               <form onSubmit={handleUpdateFaqItem} className="space-y-4">
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">질문</label>
+                                  <label className="block text-sm font-medium text-black mb-1">질문</label>
                                   <input
                                     type="text"
                                     value={editingFaqItem.question}
@@ -910,7 +910,7 @@ export default function AdminDashboardPage() {
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">답변</label>
+                                  <label className="block text-sm font-medium text-black mb-1">답변</label>
                                   <textarea
                                     value={editingFaqItem.answer}
                                     onChange={(e) => setEditingFaqItem({ ...editingFaqItem, answer: e.target.value })}
@@ -920,7 +920,7 @@ export default function AdminDashboardPage() {
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">법적근거 (선택)</label>
+                                  <label className="block text-sm font-medium text-black mb-1">법적근거 (선택)</label>
                                   <input
                                     type="text"
                                     value={editingFaqItem.legal}
@@ -933,7 +933,7 @@ export default function AdminDashboardPage() {
                                   <button
                                     type="button"
                                     onClick={() => setEditingFaqItem(null)}
-                                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="px-4 py-2 text-black border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                                   >
                                     취소
                                   </button>
@@ -950,8 +950,8 @@ export default function AdminDashboardPage() {
                               // 일반 표시
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                  <h4 className="font-medium text-gray-900 mb-2">{item.question}</h4>
-                                  <p className="text-gray-700 text-sm mb-2 line-clamp-2">{item.answer}</p>
+                                  <h4 className="font-medium text-black mb-2">{item.question}</h4>
+                                  <p className="text-black text-sm mb-2 line-clamp-2">{item.answer}</p>
                                   {item.legal && (
                                     <p className="text-blue-600 text-xs">법적근거: {item.legal}</p>
                                   )}
@@ -976,7 +976,7 @@ export default function AdminDashboardPage() {
                         ))}
 
                         {category.items.length === 0 && (
-                          <div className="p-4 text-center text-gray-500 text-sm">
+                          <div className="p-4 text-center text-black text-sm">
                             이 카테고리에는 아직 FAQ 항목이 없습니다.
                           </div>
                         )}

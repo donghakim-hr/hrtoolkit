@@ -1,16 +1,28 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Calculator, Calendar, Info, Download, FileText, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, Calculator, Calendar, Info, Download, FileText, FileSpreadsheet, Save, Check } from "lucide-react";
 import { AnnualLeaveResult, YearlyLeaveInfo } from "@/types";
 import { exportAnnualLeaveToPDF, exportAnnualLeaveToExcel } from "@/utils/exportUtils";
+
+interface UserSession {
+  userId: string;
+  username: string;
+  name: string;
+  email: string;
+}
 
 export default function AnnualLeavePage() {
   const [startDate, setStartDate] = useState("");
   const [accountingYearStart, setAccountingYearStart] = useState("01-01");
   const [calculateDate, setCalculateDate] = useState("");
   const [result, setResult] = useState<AnnualLeaveResult | null>(null);
+  const [userSession, setUserSession] = useState<UserSession | null>(null);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [saveTitle, setSaveTitle] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // 입사일 개별 필드
   const [startYear, setStartYear] = useState("");
@@ -28,6 +40,57 @@ export default function AnnualLeavePage() {
   const calcYearRef = useRef<HTMLInputElement>(null);
   const calcMonthRef = useRef<HTMLInputElement>(null);
   const calcDayRef = useRef<HTMLInputElement>(null);
+
+  // 사용자 인증 상태 확인
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch("/api/auth/me");
+      if (response.ok) {
+        const data = await response.json();
+        setUserSession(data.user);
+      }
+    } catch (error) {
+      console.error("인증 상태 확인 오류:", error);
+    }
+  };
+
+  // 계산 결과 저장
+  const saveCalculation = async () => {
+    if (!result || !userSession) return;
+
+    setSaving(true);
+    try {
+      const response = await fetch('/api/calculations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'annual-leave',
+          title: saveTitle || `연차 계산 - ${result.startDate}`,
+          data: result
+        })
+      });
+
+      if (response.ok) {
+        setSaveSuccess(true);
+        setShowSaveDialog(false);
+        setSaveTitle("");
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        alert('저장 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('저장 오류:', error);
+      alert('저장 중 오류가 발생했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // 날짜 자동 포커스 이동 핸들러
   const handleDateInput = (
@@ -276,14 +339,14 @@ export default function AnnualLeavePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center text-black hover:text-gray-700 transition-colors">
+              <Link href="/" className="flex items-center text-black hover:text-black transition-colors">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 홈으로
               </Link>
               <div className="h-6 w-px bg-gray-300"></div>
               <div className="flex items-center space-x-3">
                 <Calculator className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-900">연차 산정 계산기</h1>
+                <h1 className="text-xl font-bold text-black">연차 산정 계산기</h1>
               </div>
             </div>
           </div>
@@ -294,7 +357,7 @@ export default function AnnualLeavePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* 입력 폼 */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+            <h2 className="text-2xl font-bold text-black mb-6 flex items-center">
               <Calendar className="h-6 w-6 mr-3 text-blue-600" />
               연차 비교 분석
             </h2>
@@ -317,7 +380,7 @@ export default function AnnualLeavePage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
                       maxLength={4}
                     />
-                    <p className="text-xs text-gray-500 text-center mt-1">년도</p>
+                    <p className="text-xs text-black text-center mt-1">년도</p>
                   </div>
                   <div className="w-16">
                     <input
@@ -332,7 +395,7 @@ export default function AnnualLeavePage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
                       maxLength={2}
                     />
-                    <p className="text-xs text-gray-500 text-center mt-1">월</p>
+                    <p className="text-xs text-black text-center mt-1">월</p>
                   </div>
                   <div className="w-16">
                     <input
@@ -347,7 +410,7 @@ export default function AnnualLeavePage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
                       maxLength={2}
                     />
-                    <p className="text-xs text-gray-500 text-center mt-1">일</p>
+                    <p className="text-xs text-black text-center mt-1">일</p>
                   </div>
                 </div>
               </div>
@@ -389,7 +452,7 @@ export default function AnnualLeavePage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
                       maxLength={4}
                     />
-                    <p className="text-xs text-gray-500 text-center mt-1">년도</p>
+                    <p className="text-xs text-black text-center mt-1">년도</p>
                   </div>
                   <div className="w-16">
                     <input
@@ -404,7 +467,7 @@ export default function AnnualLeavePage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
                       maxLength={2}
                     />
-                    <p className="text-xs text-gray-500 text-center mt-1">월</p>
+                    <p className="text-xs text-black text-center mt-1">월</p>
                   </div>
                   <div className="w-16">
                     <input
@@ -419,7 +482,7 @@ export default function AnnualLeavePage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
                       maxLength={2}
                     />
-                    <p className="text-xs text-gray-500 text-center mt-1">일</p>
+                    <p className="text-xs text-black text-center mt-1">일</p>
                   </div>
                 </div>
               </div>
@@ -435,7 +498,7 @@ export default function AnnualLeavePage() {
 
           {/* 결과 표시 */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+            <h2 className="text-2xl font-bold text-black mb-6 flex items-center">
               <Calculator className="h-6 w-6 mr-3 text-green-600" />
               계산 결과
             </h2>
@@ -512,19 +575,19 @@ export default function AnnualLeavePage() {
                 {/* 기본 정보 */}
                 <div className="space-y-3">
                   <h4 className="font-medium text-black">📋 기본 정보</h4>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
+                  <div className="flex justify-between py-2 border-b border-black-100">
                     <span className="text-black">입사일</span>
                     <span className="font-medium">{result.startDate}</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
+                  <div className="flex justify-between py-2 border-b border-black-100">
                     <span className="text-black">계산 기준일</span>
                     <span className="font-medium">{result.calculateDate}</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
+                  <div className="flex justify-between py-2 border-b border-black-100">
                     <span className="text-black">회계연도 시작일</span>
                     <span className="font-medium">{result.accountingStart}</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
+                  <div className="flex justify-between py-2 border-b border-black-100">
                     <span className="text-black">총 근속연수</span>
                     <span className="font-medium">{result.workingYears}년</span>
                   </div>
@@ -549,7 +612,7 @@ export default function AnnualLeavePage() {
                           {result.yearlyHistory.map((yearData, index) => (
                             <tr key={index} className="border-b border-gray-200">
                               <td className="py-2 px-2 font-medium text-black">{yearData.year}</td>
-                              <td className="py-2 px-2 text-gray-600">{yearData.description}</td>
+                              <td className="py-2 px-2 text-black">{yearData.description}</td>
                               <td className="py-2 px-2 text-center">
                                 <div className="text-blue-600 font-medium">
                                   {yearData.hireTotalLeave}일
@@ -582,7 +645,7 @@ export default function AnnualLeavePage() {
                                     ? 'text-red-600'
                                     : yearData.difference < 0
                                     ? 'text-green-600'
-                                    : 'text-gray-600'
+                                    : 'text-black'
                                 }`}>
                                   {yearData.difference > 0 ? '+' : ''}{yearData.difference}
                                 </span>
@@ -592,7 +655,7 @@ export default function AnnualLeavePage() {
                         </tbody>
                       </table>
                     </div>
-                    <div className="mt-3 text-xs text-gray-600">
+                    <div className="mt-3 text-xs text-black">
                       <p>• <span className="text-blue-600">입사일 기준</span>: 근로기준법에 따라 받았어야 할 연차</p>
                       <p>• <span className="text-purple-600">회계연도 기준</span>: 회사 정책에 따라 실제 받았을 연차</p>
                       <p>• <span className="text-red-600">양수(+)</span>: 부족하게 받은 연차 / <span className="text-green-600">음수(-)</span>: 더 많이 받은 연차</p>
@@ -611,31 +674,62 @@ export default function AnnualLeavePage() {
                   </div>
                 )}
 
-                {/* 출력 버튼들 */}
+                {/* 저장 및 출력 버튼들 */}
                 <div className="mt-6 pt-4 border-t border-gray-200">
-                  <h4 className="font-medium text-black mb-3 flex items-center">
-                    <Download className="h-5 w-5 mr-2 text-blue-600" />
-                    계산 결과 출력
-                  </h4>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => exportAnnualLeaveToPDF(result)}
-                      className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      PDF 다운로드
-                    </button>
-                    <button
-                      onClick={() => exportAnnualLeaveToExcel(result)}
-                      className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Excel 다운로드
-                    </button>
+                  {/* 저장 성공 메시지 */}
+                  {saveSuccess && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center">
+                      <Check className="h-5 w-5 text-green-600 mr-2" />
+                      <span className="text-green-800">계산 결과가 성공적으로 저장되었습니다!</span>
+                    </div>
+                  )}
+
+                  {/* 저장 버튼 (로그인 시에만 표시) */}
+                  {userSession && (
+                    <div className="mb-4">
+                      <h4 className="font-medium text-black mb-3 flex items-center">
+                        <Save className="h-5 w-5 mr-2 text-blue-600" />
+                        계산 결과 저장
+                      </h4>
+                      <button
+                        onClick={() => setShowSaveDialog(true)}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium flex items-center justify-center"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        내 계정에 저장하기
+                      </button>
+                      <p className="text-xs text-black-600 mt-2">
+                        계산 결과를 내 계정에 저장하여 나중에 다시 확인할 수 있습니다
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 출력 버튼들 */}
+                  <div>
+                    <h4 className="font-medium text-black mb-3 flex items-center">
+                      <Download className="h-5 w-5 mr-2 text-blue-600" />
+                      계산 결과 출력
+                    </h4>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => exportAnnualLeaveToPDF(result)}
+                        className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        PDF 다운로드
+                      </button>
+                      <button
+                        onClick={() => exportAnnualLeaveToExcel(result)}
+                        className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                      >
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Excel 다운로드
+                      </button>
+                    </div>
+                    <p className="text-xs text-black-600 mt-2">
+                      계산 결과를 PDF 또는 Excel 파일로 저장할 수 있습니다
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-600 mt-2">
-                    계산 결과를 PDF 또는 Excel 파일로 저장할 수 있습니다
-                  </p>
                 </div>
               </div>
             ) : (
@@ -647,16 +741,66 @@ export default function AnnualLeavePage() {
           </div>
         </div>
 
+        {/* 저장 다이얼로그 */}
+        {showSaveDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+              <h3 className="text-lg font-semibold text-black mb-4">계산 결과 저장</h3>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-black mb-2">
+                  저장할 제목
+                </label>
+                <input
+                  type="text"
+                  value={saveTitle}
+                  onChange={(e) => setSaveTitle(e.target.value)}
+                  placeholder={`연차 계산 - ${result?.startDate || ''}`}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowSaveDialog(false);
+                    setSaveTitle("");
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-black rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={saving}
+                >
+                  취소
+                </button>
+                <button
+                  onClick={saveCalculation}
+                  disabled={saving}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      저장 중...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      저장
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 법적 근거 */}
         <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+          <h3 className="text-lg font-bold text-black mb-4 flex items-center">
             <Info className="h-5 w-5 mr-2 text-blue-600" />
             법적 근거
           </h3>
           <div className="bg-gray-50 rounded-lg p-4 text-sm text-black">
             <p className="font-medium mb-2">근로기준법 제60조 (연차 유급휴가)</p>
             <ul className="space-y-1 ml-4">
-              <li>• 1년간 8할 이상 출근한 근로자: 15일의 유급휴가</li>
+              <li>• 1년간 80% 이상 출근한 근로자: 15일의 유급휴가</li>
               <li>• 1년 미만 근로자: 1월간 개근 시 1일의 유급휴가</li>
               <li>• 3년 이상 계속근로자: 최초 1년을 초과하는 계속근로년수 2년마다 1일씩 가산</li>
               <li>• 가산휴가를 포함한 총 일수는 25일을 한도로 함</li>

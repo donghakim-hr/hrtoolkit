@@ -24,7 +24,7 @@ export default function NoticesPage() {
       case 'warning':
         return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-black border-gray-200';
     }
   };
 
@@ -59,14 +59,14 @@ export default function NoticesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center text-black hover:text-gray-700 transition-colors">
+              <Link href="/" className="flex items-center text-black hover:text-black transition-colors">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 홈으로
               </Link>
               <div className="h-6 w-px bg-gray-300"></div>
               <div className="flex items-center space-x-3">
                 <Bell className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-900">공지사항</h1>
+                <h1 className="text-xl font-bold text-black">공지사항</h1>
               </div>
             </div>
           </div>
@@ -76,7 +76,7 @@ export default function NoticesPage() {
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* 소개 */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl font-bold text-black mb-4">
             HR-Toolkit 업데이트 소식
           </h2>
           <p className="text-black">
@@ -112,13 +112,13 @@ export default function NoticesPage() {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center text-gray-500 text-sm">
+                <div className="flex items-center text-black text-sm">
                   <Calendar className="h-4 w-4 mr-1" />
                   {formatDate(notice.date)}
                 </div>
               </div>
 
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
+              <h3 className="text-xl font-bold text-black mb-3">
                 {notice.title}
               </h3>
 

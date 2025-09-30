@@ -51,13 +51,13 @@ export default function FaqPage() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-16 relative">
-            <Link href="/" className="absolute left-0 flex items-center text-black hover:text-gray-700 transition-colors">
+            <Link href="/" className="absolute left-0 flex items-center text-black hover:text-black transition-colors">
               <ArrowLeft className="h-5 w-5 mr-2" />
               홈으로
             </Link>
             <div className="flex items-center space-x-3">
               <HelpCircle className="h-6 w-6 text-red-600" />
-              <h1 className="text-xl font-bold text-gray-900">HR FAQ</h1>
+              <h1 className="text-xl font-bold text-black">HR FAQ</h1>
             </div>
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function FaqPage() {
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* 소개 */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl font-bold text-black mb-4">
             HR 업무 중 자주 묻는 질문들
           </h2>
           <p className="text-black">
@@ -79,7 +79,7 @@ export default function FaqPage() {
         <div className="space-y-8">
           {faqData.length === 0 ? (
             <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-              <HelpCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <HelpCircle className="h-12 w-12 text-black mx-auto mb-4" />
               <p className="text-black mb-2">아직 FAQ가 등록되지 않았습니다.</p>
               <p className="text-sm text-black">관리자가 FAQ를 등록하면 여기에 표시됩니다.</p>
             </div>
@@ -89,7 +89,7 @@ export default function FaqPage() {
               return (
                 <div key={category.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
                   <div className={`${category.bgColor} px-6 py-4 border-b`}>
-                    <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                    <h3 className="text-xl font-bold text-black flex items-center">
                       <Icon className={`h-6 w-6 mr-3 ${category.color}`} />
                       {category.category}
                     </h3>
@@ -148,7 +148,7 @@ export default function FaqPage() {
 
         {/* 추가 정보 */}
         <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">
+          <h3 className="text-lg font-bold text-black mb-4">
             📋 추가 도움이 필요하다면
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
