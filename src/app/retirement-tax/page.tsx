@@ -392,7 +392,7 @@ export default function RetirementTaxPage() {
                         <Save className="h-4 w-4 mr-2" />
                         내 계정에 저장하기
                       </button>
-                      <p className="text-xs text-black-600 mt-2">
+                      <p className="text-xs text-black mt-2">
                         계산 결과를 내 계정에 저장하여 나중에 다시 확인할 수 있습니다
                       </p>
                     </div>
@@ -400,29 +400,30 @@ export default function RetirementTaxPage() {
 
                   {/* 출력 버튼들 */}
                   <div>
-                  <h4 className="font-medium text-black mb-3 flex items-center">
-                    <Download className="h-5 w-5 mr-2 text-purple-600" />
-                    계산 결과 출력
-                  </h4>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => exportRetirementTaxToPDF(result)}
-                      className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      PDF 다운로드
-                    </button>
-                    <button
-                      onClick={() => exportRetirementTaxToExcel(result)}
-                      className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Excel 다운로드
-                    </button>
+                    <h4 className="font-medium text-black mb-3 flex items-center">
+                      <Download className="h-5 w-5 mr-2 text-purple-600" />
+                      계산 결과 출력
+                    </h4>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => exportRetirementTaxToPDF(result)}
+                        className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        PDF 다운로드
+                      </button>
+                      <button
+                        onClick={() => exportRetirementTaxToExcel(result)}
+                        className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                      >
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Excel 다운로드
+                      </button>
+                    </div>
+                    <p className="text-xs text-black mt-2">
+                      계산 결과를 PDF 또는 Excel 파일로 저장할 수 있습니다
+                    </p>
                   </div>
-                  <p className="text-xs text-black-600 mt-2">
-                    계산 결과를 PDF 또는 Excel 파일로 저장할 수 있습니다
-                  </p>
                 </div>
               </div>
             ) : (
