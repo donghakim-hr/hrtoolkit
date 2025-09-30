@@ -37,13 +37,31 @@ export async function saveUsers(users: User[]): Promise<void> {
 export async function registerUser(userData: RegisterData): Promise<User> {
   const users = await getUsers();
 
-  // 중복 검사
+  // 중복 검사 (이메일 기반)
   const existingUser = users.find(
-    user => user.username === userData.username || user.email === userData.email
+    user => user.email.toLowerCase() === userData.email.toLowerCase()
   );
 
   if (existingUser) {
-    throw new Error('이미 존재하는 사용자명 또는 이메일입니다.');
+    throw new Error('이미 사용중인 이메일입니다.');
+  }
+
+  // 사용자명 중복 검사
+  const existingUsername = users.find(
+    user => user.username === userData.username
+  );
+
+  if (existingUsername) {
+    throw new Error('이미 사용중인 아이디입니다.');
+  }
+
+  // 닉네임 중복 검사
+  const existingNickname = users.find(
+    user => user.nickname === userData.nickname
+  );
+
+  if (existingNickname) {
+    throw new Error('이미 사용중인 닉네임입니다.');
   }
 
   const newUser: User = {
@@ -52,6 +70,8 @@ export async function registerUser(userData: RegisterData): Promise<User> {
     email: userData.email,
     password: simpleHash(userData.password),
     name: userData.name,
+    birthDate: userData.birthDate,
+    nickname: userData.nickname,
     createdAt: new Date().toISOString(),
   };
 

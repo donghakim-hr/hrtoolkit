@@ -108,3 +108,6 @@ export interface Notice {
   important: boolean;
   badge?: string;
 }
+
+// 1:1 문의 타입 재내보내기
+export type { Inquiry, CreateInquiryRequest } from './inquiry';

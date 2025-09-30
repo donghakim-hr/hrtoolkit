@@ -3,29 +3,100 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, UserPlus, Eye, EyeOff, Mail, User, Lock } from "lucide-react";
+import { ArrowLeft, UserPlus, Eye, EyeOff, Mail, User, Lock, Calendar, AtSign } from "lucide-react";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    username: "",
+    name: "",
+    birthDate: "",
     email: "",
+    nickname: "",
+    username: "",
     password: "",
-    confirmPassword: "",
-    name: ""
+    confirmPassword: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [emailValidating, setEmailValidating] = useState(false);
+  const [emailValid, setEmailValid] = useState<boolean | null>(null);
   const router = useRouter();
+
+  // 이메일 검증 함수
+  const validateEmail = async (email: string) => {
+    if (!email || !email.includes('@')) {
+      setEmailValid(false);
+      return;
+    }
+
+    setEmailValidating(true);
+    try {
+      const response = await fetch('/api/auth/validate-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      setEmailValid(data.valid && data.available);
+    } catch (error) {
+      console.error('Email validation error:', error);
+      setEmailValid(false);
+    } finally {
+      setEmailValidating(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    // 비밀번호 확인
+    // 입력 검증
+    if (!formData.name.trim()) {
+      setError("이름을 입력해주세요.");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.birthDate) {
+      setError("생년월일을 입력해주세요.");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError("이메일을 입력해주세요.");
+      setLoading(false);
+      return;
+    }
+
+    if (emailValid !== true) {
+      setError("유효한 이메일을 입력해주세요.");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.nickname.trim()) {
+      setError("닉네임을 입력해주세요.");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.username.trim()) {
+      setError("아이디를 입력해주세요.");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("비밀번호는 6자 이상이어야 합니다.");
+      setLoading(false);
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("비밀번호가 일치하지 않습니다.");
       setLoading(false);
@@ -39,10 +110,12 @@ export default function RegisterPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: formData.username,
+          name: formData.name,
+          birthDate: formData.birthDate,
           email: formData.email,
-          password: formData.password,
-          name: formData.name
+          nickname: formData.nickname,
+          username: formData.username,
+          password: formData.password
         }),
       });
 
@@ -65,10 +138,23 @@ export default function RegisterPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
+    const { name, value } = e.target;
+    const newFormData = {
       ...formData,
-      [e.target.name]: e.target.value
-    });
+      [name]: value
+    };
+    setFormData(newFormData);
+
+    // 이메일 필드 변경 시 검증 실행
+    if (name === 'email') {
+      setEmailValid(null);
+      if (value.trim()) {
+        // 디바운스를 위해 타이머 사용
+        setTimeout(() => {
+          validateEmail(value);
+        }, 1000);
+      }
+    }
   };
 
   if (success) {
@@ -130,7 +216,7 @@ export default function RegisterPage() {
             {/* 이름 입력 */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-black mb-2">
-                이름
+                이름 *
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -148,10 +234,93 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* 사용자명 입력 */}
+            {/* 생년월일 입력 */}
+            <div>
+              <label htmlFor="birthDate" className="block text-sm font-medium text-black mb-2">
+                생년월일 *
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  id="birthDate"
+                  name="birthDate"
+                  type="date"
+                  required
+                  value={formData.birthDate}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {/* 이메일 입력 */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-black mb-2">
+                이메일주소 *
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`w-full pl-10 pr-12 py-3 border rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    emailValid === true ? 'border-green-500' : emailValid === false ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="이메일 주소를 입력하세요"
+                  disabled={loading}
+                />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  {emailValidating ? (
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  ) : emailValid === true ? (
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                  ) : emailValid === false ? (
+                    <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-1 bg-white rounded-full"></div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              {emailValid === false && (
+                <p className="text-red-600 text-xs mt-1">이미 사용중이거나 유효하지 않은 이메일입니다.</p>
+              )}
+              {emailValid === true && (
+                <p className="text-green-600 text-xs mt-1">사용 가능한 이메일입니다.</p>
+              )}
+            </div>
+
+            {/* 닉네임 입력 */}
+            <div>
+              <label htmlFor="nickname" className="block text-sm font-medium text-black mb-2">
+                닉네임 *
+              </label>
+              <div className="relative">
+                <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  id="nickname"
+                  name="nickname"
+                  type="text"
+                  required
+                  value={formData.nickname}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="닉네임을 입력하세요"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {/* 아이디 입력 */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-black mb-2">
-                사용자명
+                아이디 *
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -169,31 +338,10 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* 이메일 입력 */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-black mb-2">
-                이메일
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  placeholder="이메일 주소를 입력하세요"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
             {/* 비밀번호 입력 */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-black mb-2">
-                비밀번호
+                비밀번호 *
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -226,7 +374,7 @@ export default function RegisterPage() {
             {/* 비밀번호 확인 */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-black mb-2">
-                비밀번호 확인
+                비밀번호 확인 *
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -259,7 +407,18 @@ export default function RegisterPage() {
             {/* 회원가입 버튼 */}
             <button
               type="submit"
-              disabled={loading || !formData.username.trim() || !formData.email.trim() || !formData.password.trim() || !formData.name.trim()}
+              disabled={
+                loading ||
+                !formData.name.trim() ||
+                !formData.birthDate ||
+                !formData.email.trim() ||
+                emailValid !== true ||
+                !formData.nickname.trim() ||
+                !formData.username.trim() ||
+                !formData.password.trim() ||
+                !formData.confirmPassword.trim() ||
+                formData.password !== formData.confirmPassword
+              }
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               {loading ? (

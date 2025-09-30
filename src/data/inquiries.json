@@ -1,0 +1,13 @@
+[
+  {
+    "id": "1759224688504",
+    "name": "테스트 사용자",
+    "email": "test@example.com",
+    "subject": "테스트 문의",
+    "content": "안녕하세요. HR-Toolkit 사용 중 테스트 문의드립니다. 시스템이 잘 작동하는지 확인하기 위한 테스트 문의입니다.",
+    "isRegistered": false,
+    "status": "pending",
+    "createdAt": "2025-09-30T09:31:28.504Z",
+    "updatedAt": "2025-09-30T09:31:28.504Z"
+  }
+]

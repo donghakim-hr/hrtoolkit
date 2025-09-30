@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { MessageSquare, Plus, Eye, Clock, User, Edit3, Send } from 'lucide-react';
+import { MessageSquare, Plus, Eye, Clock, User, Edit3, Send, Home } from 'lucide-react';
+import Link from 'next/link';
 import { CommunityPost } from '@/types/community';
 
 interface UserSession {
@@ -128,11 +129,21 @@ export default function FreeBoard() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <MessageSquare className="h-8 w-8 text-blue-600" />
-              <div>
-                <h1 className="text-2xl font-bold text-black">💬 자유게시판</h1>
-                <p className="text-sm text-black mt-1">자유롭게 이야기를 나누는 공간입니다</p>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/"
+                className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                <Home className="h-5 w-5 mr-1" />
+                <span className="text-sm font-medium">홈</span>
+              </Link>
+              <div className="h-6 w-px bg-gray-300"></div>
+              <div className="flex items-center space-x-3">
+                <MessageSquare className="h-8 w-8 text-blue-600" />
+                <div>
+                  <h1 className="text-2xl font-bold text-black">💬 자유게시판</h1>
+                  <p className="text-sm text-black mt-1">자유롭게 이야기를 나누는 공간입니다</p>
+                </div>
               </div>
             </div>
             <button

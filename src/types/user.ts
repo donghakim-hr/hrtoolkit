@@ -4,6 +4,8 @@ export interface User {
   email: string;
   password: string; // 실제로는 해시된 비밀번호
   name: string;
+  birthDate: string; // YYYY-MM-DD 형식
+  nickname: string;
   createdAt: string;
   lastLoginAt?: string;
 }
@@ -18,6 +20,8 @@ export interface RegisterData {
   email: string;
   password: string;
   name: string;
+  birthDate: string;
+  nickname: string;
 }
 
 export interface UserSession {
@@ -25,5 +29,6 @@ export interface UserSession {
   username: string;
   name: string;
   email: string;
+  nickname: string;
   isLoggedIn: boolean;
 }

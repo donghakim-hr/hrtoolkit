@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Book, Calendar, FileText, Bookmark } from "lucide-react";
+import { ArrowLeft, Search, Book, Calendar, FileText, Bookmark, ExternalLink } from "lucide-react";
 import legalData from "@/data/legal-articles.json";
 import { LegalData, LegalSearchResult } from "@/types";
 
@@ -13,6 +13,22 @@ export default function LegalSearchPage() {
   const [favorites, setFavorites] = useState<string[]>([]);
 
   const laws = ["전체", ...Object.keys(legalData)];
+
+  // 국가법령정보센터 URL 생성 함수
+  const getLawUrl = (lawName: string, lawNumber?: string) => {
+    // 기본 국가법령정보센터 검색 URL
+    const baseUrl = "https://www.law.go.kr/LSW/lsInfoP.do";
+
+    // 법령명에서 불필요한 문자 제거하고 검색어로 사용
+    const searchTerm = lawName.replace(/\s+/g, '');
+
+    // 법령번호가 있으면 법령번호로 검색, 없으면 법령명으로 검색
+    if (lawNumber) {
+      return `${baseUrl}?lsiSeq=${lawNumber}`;
+    } else {
+      return `${baseUrl}?efYd=&lsNm=${encodeURIComponent(searchTerm)}`;
+    }
+  };
 
   useEffect(() => {
     // 로컬 스토리지에서 즐겨찾기 불러오기
@@ -180,9 +196,16 @@ export default function LegalSearchPage() {
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <Book className="h-5 w-5 text-orange-600" />
-                        <span className="text-sm font-medium text-orange-600">
+                        <a
+                          href={getLawUrl(result.law, result.lawNumber)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-orange-600 hover:text-orange-800 hover:underline transition-colors inline-flex items-center gap-1"
+                          title="국가법령정보센터에서 전체 법령 보기"
+                        >
                           {result.law}
-                        </span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
                         <span className="text-sm text-black">
                           {result.article}
                         </span>
@@ -264,7 +287,19 @@ export default function LegalSearchPage() {
                 return (
                   <div key={favoriteId} className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div>
-                      <p className="font-medium text-gray-900">{lawName} {articleKey}</p>
+                      <p className="font-medium text-gray-900">
+                        <a
+                          href={getLawUrl(lawName, lawInfo.법령번호)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-orange-600 hover:text-orange-800 hover:underline transition-colors inline-flex items-center gap-1"
+                          title="국가법령정보센터에서 전체 법령 보기"
+                        >
+                          {lawName}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                        {' '}{articleKey}
+                      </p>
                       <p className="text-sm text-black">{title}</p>
                     </div>
                     <button
@@ -289,7 +324,18 @@ export default function LegalSearchPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {Object.entries(legalData).map(([lawName, lawInfo]) => (
               <div key={lawName} className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">{lawName}</h4>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  <a
+                    href={getLawUrl(lawName, lawInfo.법령번호)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-orange-600 hover:text-orange-800 hover:underline transition-colors inline-flex items-center gap-1"
+                    title="국가법령정보센터에서 전체 법령 보기"
+                  >
+                    {lawName}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </h4>
                 <div className="text-sm text-black space-y-1">
                   <p>법령번호: {lawInfo.법령번호}</p>
                   <p>시행일: {lawInfo.시행일}</p>

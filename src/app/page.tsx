@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Calculator, FileText, DollarSign, Search, HelpCircle, Briefcase, Bell, X, User, LogIn, LogOut, MessageSquare, ChevronDown } from "lucide-react";
+import { Calculator, FileText, DollarSign, Search, HelpCircle, Briefcase, Bell, X, User, LogIn, LogOut, MessageSquare, ChevronDown, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Notice } from "@/types";
 import noticesData from "@/data/notices.json";
@@ -18,8 +18,6 @@ export default function Home() {
   const [userSession, setUserSession] = useState<UserSession | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showCommunityDropdown, setShowCommunityDropdown] = useState(false);
-  const [quickLoginForm, setQuickLoginForm] = useState({ username: "", password: "" });
-  const [quickLoginLoading, setQuickLoginLoading] = useState(false);
   const notices = noticesData as Notice[];
 
   useEffect(() => {
@@ -65,32 +63,6 @@ export default function Home() {
     }
   };
 
-  const handleQuickLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setQuickLoginLoading(true);
-
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(quickLoginForm),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUserSession(data.user);
-        setQuickLoginForm({ username: "", password: "" });
-      } else {
-        const error = await response.json();
-        alert(error.error || "로그인에 실패했습니다.");
-      }
-    } catch (error) {
-      console.error("로그인 오류:", error);
-      alert("서버 연결에 실패했습니다.");
-    } finally {
-      setQuickLoginLoading(false);
-    }
-  };
 
   // 최신 중요 공지 가져오기 (해제되지 않은 것 중)
   const activeNotices = notices
@@ -159,6 +131,13 @@ export default function Home() {
                   <HelpCircle className="h-4 w-4 mr-1" />
                   <span className="text-sm font-medium">자주묻는질문</span>
                 </Link>
+                <Link
+                  href="/inquiry"
+                  className="flex items-center text-black hover:text-blue-600 transition-colors"
+                >
+                  <Mail className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">1:1문의</span>
+                </Link>
                 {/* 커뮤니티 드롭다운 */}
                 <div className="relative">
                   <button
@@ -218,52 +197,13 @@ export default function Home() {
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-3">
-                  {/* 빠른 로그인 폼 */}
-                  <form onSubmit={handleQuickLogin} className="hidden lg:flex items-center space-x-2">
-                    <input
-                      type="text"
-                      placeholder="아이디"
-                      value={quickLoginForm.username}
-                      onChange={(e) => setQuickLoginForm(prev => ({ ...prev, username: e.target.value }))}
-                      className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500 w-20"
-                      disabled={quickLoginLoading}
-                    />
-                    <input
-                      type="password"
-                      placeholder="비밀번호"
-                      value={quickLoginForm.password}
-                      onChange={(e) => setQuickLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                      className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500 w-20"
-                      disabled={quickLoginLoading}
-                    />
-                    <button
-                      type="submit"
-                      disabled={quickLoginLoading || !quickLoginForm.username || !quickLoginForm.password}
-                      className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {quickLoginLoading ? "..." : "로그인"}
-                    </button>
-                  </form>
-                  {/* 기존 로그인/회원가입 버튼 */}
-                  <div className="flex items-center space-x-2">
-                    <Link
-                      href="/auth/login"
-                      className="flex items-center text-blue-600 hover:text-blue-700 transition-colors px-3 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-50"
-                    >
-                      <LogIn className="h-4 w-4 mr-1" />
-                      <span className="text-sm font-medium lg:hidden">로그인</span>
-                      <span className="text-sm font-medium hidden lg:block">상세로그인</span>
-                    </Link>
-                    <Link
-                      href="/auth/register"
-                      className="flex items-center bg-blue-600 hover:bg-blue-700 text-white transition-colors px-3 py-1.5 rounded-lg"
-                    >
-                      <User className="h-4 w-4 mr-1" />
-                      <span className="text-sm font-medium">회원가입</span>
-                    </Link>
-                  </div>
-                </div>
+                <Link
+                  href="/auth/login"
+                  className="flex items-center text-blue-600 hover:text-blue-700 transition-colors px-3 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-50"
+                >
+                  <LogIn className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">로그인</span>
+                </Link>
               )}
             </div>
           </div>
@@ -364,10 +304,10 @@ export default function Home() {
               <Briefcase className="h-6 w-6" />
               <span className="text-lg font-semibold">HR-Toolkit</span>
             </div>
-            <p className="text-black text-sm">
+            <p className="text-white text-sm">
               © 2024 HR-Toolkit. 모든 계산은 관련 법령에 근거합니다.
             </p>
-            <p className="text-black text-xs mt-2">
+            <p className="text-white text-xs mt-2">
               ⚠️ 본 도구의 계산 결과는 참고용이며, 정확한 업무 처리를 위해서는 관련 법령을 반드시 확인하시기 바랍니다.
             </p>
           </div>
