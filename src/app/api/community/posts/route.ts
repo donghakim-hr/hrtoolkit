@@ -57,12 +57,13 @@ export async function POST(request: NextRequest) {
         author = generateAnonymousName();
         authorId = undefined;
       } else {
-        author = userSession.name;
+        // Use nickname if available, otherwise use name
+        author = userSession.nickname || userSession.name;
         authorId = userSession.userId;
       }
     } else {
       // Non-member post
-      author = generateAnonymousName();
+      author = "비회원";
       authorId = undefined;
     }
 

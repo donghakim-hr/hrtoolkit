@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, Calculator, Calendar, Info } from "lucide-react";
 import { AnnualLeaveResult, YearlyLeaveInfo } from "@/types";
@@ -10,6 +10,63 @@ export default function AnnualLeavePage() {
   const [accountingYearStart, setAccountingYearStart] = useState("01-01");
   const [calculateDate, setCalculateDate] = useState("");
   const [result, setResult] = useState<AnnualLeaveResult | null>(null);
+
+  // 입사일 개별 필드
+  const [startYear, setStartYear] = useState("");
+  const [startMonth, setStartMonth] = useState("");
+  const [startDay, setStartDay] = useState("");
+
+  // 계산 기준일 개별 필드
+  const [calcYear, setCalcYear] = useState("");
+  const [calcMonth, setCalcMonth] = useState("");
+  const [calcDay, setCalcDay] = useState("");
+
+  // refs for auto focus
+  const startMonthRef = useRef<HTMLInputElement>(null);
+  const startDayRef = useRef<HTMLInputElement>(null);
+  const calcYearRef = useRef<HTMLInputElement>(null);
+  const calcMonthRef = useRef<HTMLInputElement>(null);
+  const calcDayRef = useRef<HTMLInputElement>(null);
+
+  // 날짜 자동 포커스 이동 핸들러
+  const handleDateInput = (
+    value: string,
+    setter: (value: string) => void,
+    maxLength: number,
+    nextRef?: React.RefObject<HTMLInputElement>
+  ) => {
+    // 숫자만 허용
+    const numericValue = value.replace(/\D/g, '');
+
+    if (numericValue.length <= maxLength) {
+      setter(numericValue);
+
+      // 최대 길이에 도달하면 다음 필드로 이동
+      if (numericValue.length === maxLength && nextRef?.current) {
+        nextRef.current.focus();
+      }
+    }
+  };
+
+  // 개별 필드를 조합하여 날짜 문자열 생성
+  const combineDate = (year: string, month: string, day: string): string => {
+    if (year.length === 4 && month.length === 2 && day.length === 2) {
+      return `${year}-${month}-${day}`;
+    }
+    return "";
+  };
+
+  // 입사일이 변경될 때마다 startDate 업데이트
+  const updateStartDate = (year: string, month: string, day: string) => {
+    const combined = combineDate(year, month, day);
+    setStartDate(combined);
+  };
+
+  // 계산일이 변경될 때마다 calculateDate 업데이트
+  const updateCalculateDate = (year: string, month: string, day: string) => {
+    const combined = combineDate(year, month, day);
+    setCalculateDate(combined);
+  };
 
   const calculateAnnualLeave = () => {
     if (!startDate || !calculateDate) {
@@ -221,12 +278,52 @@ export default function AnnualLeavePage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   입사일
                 </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                <div className="flex space-x-2">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      placeholder="년도 (4자리)"
+                      value={startYear}
+                      onChange={(e) => {
+                        handleDateInput(e.target.value, setStartYear, 4, startMonthRef);
+                        updateStartDate(e.target.value.replace(/\D/g, ''), startMonth, startDay);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
+                      maxLength={4}
+                    />
+                    <p className="text-xs text-gray-500 text-center mt-1">년도</p>
+                  </div>
+                  <div className="w-16">
+                    <input
+                      ref={startMonthRef}
+                      type="text"
+                      placeholder="월"
+                      value={startMonth}
+                      onChange={(e) => {
+                        handleDateInput(e.target.value, setStartMonth, 2, startDayRef);
+                        updateStartDate(startYear, e.target.value.replace(/\D/g, ''), startDay);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
+                      maxLength={2}
+                    />
+                    <p className="text-xs text-gray-500 text-center mt-1">월</p>
+                  </div>
+                  <div className="w-16">
+                    <input
+                      ref={startDayRef}
+                      type="text"
+                      placeholder="일"
+                      value={startDay}
+                      onChange={(e) => {
+                        handleDateInput(e.target.value, setStartDay, 2, calcYearRef);
+                        updateStartDate(startYear, startMonth, e.target.value.replace(/\D/g, ''));
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
+                      maxLength={2}
+                    />
+                    <p className="text-xs text-gray-500 text-center mt-1">일</p>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -252,12 +349,53 @@ export default function AnnualLeavePage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   계산 기준일
                 </label>
-                <input
-                  type="date"
-                  value={calculateDate}
-                  onChange={(e) => setCalculateDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                <div className="flex space-x-2">
+                  <div className="flex-1">
+                    <input
+                      ref={calcYearRef}
+                      type="text"
+                      placeholder="년도 (4자리)"
+                      value={calcYear}
+                      onChange={(e) => {
+                        handleDateInput(e.target.value, setCalcYear, 4, calcMonthRef);
+                        updateCalculateDate(e.target.value.replace(/\D/g, ''), calcMonth, calcDay);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
+                      maxLength={4}
+                    />
+                    <p className="text-xs text-gray-500 text-center mt-1">년도</p>
+                  </div>
+                  <div className="w-16">
+                    <input
+                      ref={calcMonthRef}
+                      type="text"
+                      placeholder="월"
+                      value={calcMonth}
+                      onChange={(e) => {
+                        handleDateInput(e.target.value, setCalcMonth, 2, calcDayRef);
+                        updateCalculateDate(calcYear, e.target.value.replace(/\D/g, ''), calcDay);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
+                      maxLength={2}
+                    />
+                    <p className="text-xs text-gray-500 text-center mt-1">월</p>
+                  </div>
+                  <div className="w-16">
+                    <input
+                      ref={calcDayRef}
+                      type="text"
+                      placeholder="일"
+                      value={calcDay}
+                      onChange={(e) => {
+                        handleDateInput(e.target.value, setCalcDay, 2);
+                        updateCalculateDate(calcYear, calcMonth, e.target.value.replace(/\D/g, ''));
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
+                      maxLength={2}
+                    />
+                    <p className="text-xs text-gray-500 text-center mt-1">일</p>
+                  </div>
+                </div>
               </div>
 
               <button

@@ -51,7 +51,7 @@ export default function AdminDashboardPage() {
   const [selectedFaqCategory, setSelectedFaqCategory] = useState<string>('');
   const [showNewFaqForm, setShowNewFaqForm] = useState(false);
   const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
-  const [editingFaqItem, setEditingFaqItem] = useState<{id: string, question: string, answer: string} | null>(null);
+  const [editingFaqItem, setEditingFaqItem] = useState<{id: string, question: string, answer: string, legal: string, categoryId: string} | null>(null);
   const router = useRouter();
 
   // 새 공지사항 폼 상태
@@ -266,6 +266,62 @@ export default function AdminDashboardPage() {
       }
     } catch (error) {
       console.error("게시글 삭제 오류:", error);
+      setError("서버 연결에 실패했습니다.");
+    }
+  };
+
+  // FAQ 항목 수정
+  const handleUpdateFaqItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFaqItem) return;
+
+    try {
+      const response = await fetch(`/api/admin/faq/${editingFaqItem.categoryId}/items/${editingFaqItem.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: editingFaqItem.question,
+          answer: editingFaqItem.answer,
+          legal: editingFaqItem.legal
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message);
+        setEditingFaqItem(null);
+        fetchFaq();
+      } else {
+        const data = await response.json();
+        setError(data.error || "FAQ 항목 수정에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("FAQ 항목 수정 오류:", error);
+      setError("서버 연결에 실패했습니다.");
+    }
+  };
+
+  // FAQ 항목 삭제
+  const handleDeleteFaqItem = async (categoryId: string, itemId: string) => {
+    if (!confirm("이 FAQ 항목을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/faq/${categoryId}/items/${itemId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message);
+        fetchFaq();
+      } else {
+        const data = await response.json();
+        setError(data.error || "FAQ 항목 삭제에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("FAQ 항목 삭제 오류:", error);
       setError("서버 연결에 실패했습니다.");
     }
   };
@@ -840,26 +896,82 @@ export default function AdminDashboardPage() {
                       <div className="divide-y divide-gray-100">
                         {category.items.map((item) => (
                           <div key={item.id} className="p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900 mb-2">{item.question}</h4>
-                                <p className="text-gray-700 text-sm mb-2 line-clamp-2">{item.answer}</p>
-                                {item.legal && (
-                                  <p className="text-blue-600 text-xs">법적근거: {item.legal}</p>
-                                )}
+                            {editingFaqItem?.id === item.id ? (
+                              // 수정 폼
+                              <form onSubmit={handleUpdateFaqItem} className="space-y-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">질문</label>
+                                  <input
+                                    type="text"
+                                    value={editingFaqItem.question}
+                                    onChange={(e) => setEditingFaqItem({ ...editingFaqItem, question: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">답변</label>
+                                  <textarea
+                                    value={editingFaqItem.answer}
+                                    onChange={(e) => setEditingFaqItem({ ...editingFaqItem, answer: e.target.value })}
+                                    rows={4}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">법적근거 (선택)</label>
+                                  <input
+                                    type="text"
+                                    value={editingFaqItem.legal}
+                                    onChange={(e) => setEditingFaqItem({ ...editingFaqItem, legal: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                                    placeholder="관련 법령 또는 조문"
+                                  />
+                                </div>
+                                <div className="flex justify-end space-x-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingFaqItem(null)}
+                                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                  >
+                                    취소
+                                  </button>
+                                  <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                  >
+                                    <Save className="h-4 w-4" />
+                                    <span>저장</span>
+                                  </button>
+                                </div>
+                              </form>
+                            ) : (
+                              // 일반 표시
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-gray-900 mb-2">{item.question}</h4>
+                                  <p className="text-gray-700 text-sm mb-2 line-clamp-2">{item.answer}</p>
+                                  {item.legal && (
+                                    <p className="text-blue-600 text-xs">법적근거: {item.legal}</p>
+                                  )}
+                                </div>
+                                <div className="ml-4 space-x-2">
+                                  <button
+                                    onClick={() => setEditingFaqItem({ ...item, categoryId: category.id })}
+                                    className="text-blue-600 hover:text-blue-800 text-sm"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteFaqItem(category.id, item.id)}
+                                    className="text-red-600 hover:text-red-800 text-sm"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
                               </div>
-                              <div className="ml-4 space-x-2">
-                                <button
-                                  onClick={() => setEditingFaqItem(item)}
-                                  className="text-blue-600 hover:text-blue-800 text-sm"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </button>
-                                <button className="text-red-600 hover:text-red-800 text-sm">
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </div>
+                            )}
                           </div>
                         ))}
 

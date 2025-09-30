@@ -10,6 +10,7 @@ interface UserSession {
   username: string;
   name: string;
   email: string;
+  nickname?: string;
 }
 
 export default function FreeBoard() {
@@ -203,10 +204,13 @@ export default function FreeBoard() {
               )}
               <div className="flex items-center justify-between">
                 <p className="text-xs text-black">
-                  {userSession ?
-                    `${userSession.name}님으로 로그인됨${formData.isAnonymous ? ' (익명으로 작성)' : ''}` :
-                    '비회원으로 작성됨 (자동 익명)'
-                  }
+                  {userSession ? (
+                    formData.isAnonymous ?
+                      '익명으로 작성됩니다' :
+                      `${userSession.nickname || userSession.name}님으로 작성됩니다`
+                  ) : (
+                    '비회원으로 작성됩니다'
+                  )}
                 </p>
                 <div className="space-x-2">
                   <button
