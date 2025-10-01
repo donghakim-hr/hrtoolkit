@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Calculator, Calendar, Info, Download, FileText, FileSpreadsheet, Save, Check } from "lucide-react";
+import { ArrowLeft, Calculator, Calendar, Info, Download, FileText, FileSpreadsheet, Save, Check, Edit3, RefreshCw } from "lucide-react";
 import { AnnualLeaveResult, YearlyLeaveInfo } from "@/types";
 import { exportAnnualLeaveToPDF, exportAnnualLeaveToExcel } from "@/utils/exportUtils";
 
@@ -23,6 +23,11 @@ export default function AnnualLeavePage() {
   const [saveTitle, setSaveTitle] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // 수동 편집 관련 상태
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableHistory, setEditableHistory] = useState<YearlyLeaveInfo[]>([]);
+  const [originalResult, setOriginalResult] = useState<AnnualLeaveResult | null>(null);
 
   // 입사일 개별 필드
   const [startYear, setStartYear] = useState("");
@@ -90,6 +95,68 @@ export default function AnnualLeavePage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // 수동 편집 시작
+  const startEditing = () => {
+    if (result) {
+      setOriginalResult({ ...result });
+      setEditableHistory([...result.yearlyHistory]);
+      setIsEditing(true);
+    }
+  };
+
+  // 수동 편집 취소
+  const cancelEditing = () => {
+    if (originalResult) {
+      setResult(originalResult);
+      setEditableHistory([]);
+      setOriginalResult(null);
+    }
+    setIsEditing(false);
+  };
+
+  // 수동 편집된 값으로 재계산
+  const recalculateWithEdits = () => {
+    if (!result || !editableHistory.length) return;
+
+    // 수정된 히스토리를 기반으로 총합을 재계산
+    let hireTotalSum = 0;
+    let accountingTotalSum = 0;
+
+    editableHistory.forEach(yearData => {
+      const hireTotalLeave = yearData.hireBasedLeave + yearData.hireBasedAdditional;
+      const accountingTotalLeave = yearData.accountingLeave + yearData.accountingAdditional;
+
+      // 차이 재계산
+      yearData.hireTotalLeave = hireTotalLeave;
+      yearData.accountingTotalLeave = accountingTotalLeave;
+      yearData.difference = accountingTotalLeave - hireTotalLeave;
+
+      hireTotalSum += hireTotalLeave;
+      accountingTotalSum += accountingTotalLeave;
+    });
+
+    // 결과 업데이트
+    const updatedResult: AnnualLeaveResult = {
+      ...result,
+      totalLeave: hireTotalSum,
+      totalAccountingLeave: accountingTotalSum,
+      leaveDifference: accountingTotalSum - hireTotalSum,
+      yearlyHistory: [...editableHistory]
+    };
+
+    setResult(updatedResult);
+    setIsEditing(false);
+    setEditableHistory([]);
+    setOriginalResult(null);
+  };
+
+  // 개별 연도 데이터 수정
+  const updateYearData = (index: number, field: keyof YearlyLeaveInfo, value: number) => {
+    const updated = [...editableHistory];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditableHistory(updated);
   };
 
   // 날짜 자동 포커스 이동 핸들러
@@ -595,7 +662,36 @@ export default function AnnualLeavePage() {
 
                 {/* 연도별 히스토리 */}
                 <div className="space-y-4">
-                  <h4 className="font-medium text-black">📊 연도별 연차 히스토리</h4>
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium text-black">📊 연도별 연차 히스토리</h4>
+                    <div className="flex space-x-2">
+                      {!isEditing ? (
+                        <button
+                          onClick={startEditing}
+                          className="flex items-center space-x-1 text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md transition-colors"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                          <span>수정</span>
+                        </button>
+                      ) : (
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={recalculateWithEdits}
+                            className="flex items-center space-x-1 text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md transition-colors"
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                            <span>계산</span>
+                          </button>
+                          <button
+                            onClick={cancelEditing}
+                            className="flex items-center space-x-1 text-sm bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md transition-colors"
+                          >
+                            <span>취소</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
@@ -609,45 +705,110 @@ export default function AnnualLeavePage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {result.yearlyHistory.map((yearData, index) => (
+                          {(isEditing ? editableHistory : result.yearlyHistory).map((yearData, index) => (
                             <tr key={index} className="border-b border-gray-200">
                               <td className="py-2 px-2 font-medium text-black">{yearData.year}</td>
                               <td className="py-2 px-2 text-black">{yearData.description}</td>
                               <td className="py-2 px-2 text-center">
-                                <div className="text-blue-600 font-medium">
-                                  {yearData.hireTotalLeave}일
-                                </div>
-                                <div className="text-xs text-blue-500">
-                                  {yearData.hireBasedLeave + (yearData.hireBasedAdditional > 0 ? ` + ${yearData.hireBasedAdditional}` : '')}
-                                </div>
-                                {yearData.hireDateInfo && (
-                                  <div className="text-xs text-blue-400 mt-1">
-                                    {yearData.hireDateInfo}
+                                {isEditing ? (
+                                  <div className="space-y-1">
+                                    <div className="flex items-center justify-center space-x-1">
+                                      <input
+                                        type="number"
+                                        value={yearData.hireBasedLeave}
+                                        onChange={(e) => updateYearData(index, 'hireBasedLeave', parseInt(e.target.value) || 0)}
+                                        className="w-16 px-1 py-1 text-xs border border-blue-300 rounded text-center text-black"
+                                        min="0"
+                                      />
+                                      <span className="text-xs text-blue-500">+</span>
+                                      <input
+                                        type="number"
+                                        value={yearData.hireBasedAdditional}
+                                        onChange={(e) => updateYearData(index, 'hireBasedAdditional', parseInt(e.target.value) || 0)}
+                                        className="w-16 px-1 py-1 text-xs border border-blue-300 rounded text-center text-black"
+                                        min="0"
+                                      />
+                                    </div>
+                                    <div className="text-blue-600 font-medium text-xs">
+                                      = {yearData.hireBasedLeave + yearData.hireBasedAdditional}일
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <div className="text-blue-600 font-medium">
+                                      {yearData.hireTotalLeave}일
+                                    </div>
+                                    <div className="text-xs text-blue-500">
+                                      {yearData.hireBasedLeave + (yearData.hireBasedAdditional > 0 ? ` + ${yearData.hireBasedAdditional}` : '')}
+                                    </div>
+                                    {yearData.hireDateInfo && (
+                                      <div className="text-xs text-blue-400 mt-1">
+                                        {yearData.hireDateInfo}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </td>
                               <td className="py-2 px-2 text-center">
-                                <div className="text-purple-600 font-medium">
-                                  {yearData.accountingTotalLeave}일
-                                </div>
-                                <div className="text-xs text-purple-500">
-                                  {yearData.accountingLeave + (yearData.accountingAdditional > 0 ? ` + ${yearData.accountingAdditional}` : '')}
-                                </div>
-                                {yearData.accountingDateInfo && (
-                                  <div className="text-xs text-purple-400 mt-1">
-                                    {yearData.accountingDateInfo}
+                                {isEditing ? (
+                                  <div className="space-y-1">
+                                    <div className="flex items-center justify-center space-x-1">
+                                      <input
+                                        type="number"
+                                        value={yearData.accountingLeave}
+                                        onChange={(e) => updateYearData(index, 'accountingLeave', parseInt(e.target.value) || 0)}
+                                        className="w-16 px-1 py-1 text-xs border border-purple-300 rounded text-center text-black"
+                                        min="0"
+                                      />
+                                      <span className="text-xs text-purple-500">+</span>
+                                      <input
+                                        type="number"
+                                        value={yearData.accountingAdditional}
+                                        onChange={(e) => updateYearData(index, 'accountingAdditional', parseInt(e.target.value) || 0)}
+                                        className="w-16 px-1 py-1 text-xs border border-purple-300 rounded text-center text-black"
+                                        min="0"
+                                      />
+                                    </div>
+                                    <div className="text-purple-600 font-medium text-xs">
+                                      = {yearData.accountingLeave + yearData.accountingAdditional}일
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <div className="text-purple-600 font-medium">
+                                      {yearData.accountingTotalLeave}일
+                                    </div>
+                                    <div className="text-xs text-purple-500">
+                                      {yearData.accountingLeave + (yearData.accountingAdditional > 0 ? ` + ${yearData.accountingAdditional}` : '')}
+                                    </div>
+                                    {yearData.accountingDateInfo && (
+                                      <div className="text-xs text-purple-400 mt-1">
+                                        {yearData.accountingDateInfo}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </td>
                               <td className="py-2 px-2 text-center">
                                 <span className={`font-medium ${
-                                  yearData.difference > 0
+                                  (isEditing ?
+                                    (yearData.accountingLeave + yearData.accountingAdditional) - (yearData.hireBasedLeave + yearData.hireBasedAdditional) :
+                                    yearData.difference) > 0
                                     ? 'text-red-600'
-                                    : yearData.difference < 0
+                                    : (isEditing ?
+                                      (yearData.accountingLeave + yearData.accountingAdditional) - (yearData.hireBasedLeave + yearData.hireBasedAdditional) :
+                                      yearData.difference) < 0
                                     ? 'text-green-600'
                                     : 'text-black'
                                 }`}>
-                                  {yearData.difference > 0 ? '+' : ''}{yearData.difference}
+                                  {isEditing ? (
+                                    (() => {
+                                      const diff = (yearData.accountingLeave + yearData.accountingAdditional) - (yearData.hireBasedLeave + yearData.hireBasedAdditional);
+                                      return `${diff > 0 ? '+' : ''}${diff}`;
+                                    })()
+                                  ) : (
+                                    `${yearData.difference > 0 ? '+' : ''}${yearData.difference}`
+                                  )}
                                 </span>
                               </td>
                             </tr>
@@ -659,6 +820,9 @@ export default function AnnualLeavePage() {
                       <p>• <span className="text-blue-600">입사일 기준</span>: 근로기준법에 따라 받았어야 할 연차</p>
                       <p>• <span className="text-purple-600">회계연도 기준</span>: 회사 정책에 따라 실제 받았을 연차</p>
                       <p>• <span className="text-red-600">양수(+)</span>: 부족하게 받은 연차 / <span className="text-green-600">음수(-)</span>: 더 많이 받은 연차</p>
+                      {isEditing && (
+                        <p className="mt-2 text-blue-600 font-medium">✏️ 편집 모드: 연차 수를 직접 수정할 수 있습니다. 수정 후 &apos;계산&apos; 버튼을 누르세요.</p>
+                      )}
                     </div>
                   </div>
                 </div>
