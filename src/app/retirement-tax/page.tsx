@@ -306,7 +306,7 @@ export default function RetirementTaxPage() {
               계산 결과
             </h2>
 
-            {result ? (
+            {result ?
               <div className="space-y-4">
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                   <h3 className="text-lg font-semibold text-purple-800 mb-2">실수령액</h3>
@@ -426,12 +426,12 @@ export default function RetirementTaxPage() {
                   </div>
                 </div>
               </div>
-            ) : (
+            :
               <div className="text-center text-black py-8">
                 <FileText className="h-12 w-12 mx-auto mb-4 text-black" />
                 <p className="text-black">정보를 입력하고 계산 버튼을 눌러주세요.</p>
               </div>
-            )}
+            }
           </div>
         </div>
 
