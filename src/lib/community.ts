@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { CommunityPost, CommunityComment, BoardInfo } from '@/types/community';
+import { CommunityPost, BoardInfo } from '@/types/community';
 
 const postsFilePath = path.join(process.cwd(), 'src/data/community-posts.json');
 

@@ -42,7 +42,6 @@ export default function RetirementPayPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [averagePay, setAveragePay] = useState("");
-  const [retirementType, setRetirementType] = useState("퇴직금");
   const [retirementSystem, setRetirementSystem] = useState<"DB" | "DC" | "hybrid">("DB"); // DB형(확정급여형), DC형(확정기여형), 혼합형
 
   // DC형 관련 상태

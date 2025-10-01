@@ -59,7 +59,7 @@ export const exportAnnualLeaveToPDF = (result: AnnualLeaveResult) => {
   doc.text('=== Yearly History ===', 20, yPosition);
   yPosition += 10;
 
-  result.yearlyHistory.forEach((yearData, index) => {
+  result.yearlyHistory.forEach((yearData) => {
     if (yPosition > 270) { // 페이지 끝에 가까우면 새 페이지
       doc.addPage();
       yPosition = 20;

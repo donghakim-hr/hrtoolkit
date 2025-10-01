@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, TrendingUp, Calculator, Calendar, AlertTriangle, CheckCircle, Info, DollarSign, Clock, Users, FileText } from "lucide-react";
+import { ArrowLeft, TrendingUp, Calculator, AlertTriangle, CheckCircle, Info, DollarSign, Clock, FileText } from "lucide-react";
 
 interface MinimumWageResult {
   year: number;

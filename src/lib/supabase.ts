@@ -47,7 +47,7 @@ export interface Calculation {
   user_id: string
   type: 'annual-leave' | 'retirement-pay' | 'retirement-tax'
   title: string
-  data: any
+  data: Record<string, unknown>
   created_at: string
 }
 
