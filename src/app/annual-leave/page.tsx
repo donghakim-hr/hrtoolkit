@@ -444,12 +444,12 @@ export default function AnnualLeavePage() {
                         handleDateInput(e.target.value, setStartYear, 4, startMonthRef);
                         updateStartDate(e.target.value.replace(/\D/g, ''), startMonth, startDay);
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
+                      className="w-full px-3 py-2 border border-black-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
                       maxLength={4}
                     />
                     <p className="text-xs text-black text-center mt-1">년도</p>
                   </div>
-                  <div className="w-16">
+                  <div className="flex-1">
                     <input
                       ref={startMonthRef}
                       type="text"
@@ -464,7 +464,7 @@ export default function AnnualLeavePage() {
                     />
                     <p className="text-xs text-black text-center mt-1">월</p>
                   </div>
-                  <div className="w-16">
+                  <div className="flex-1">
                     <input
                       ref={startDayRef}
                       type="text"
@@ -521,7 +521,7 @@ export default function AnnualLeavePage() {
                     />
                     <p className="text-xs text-black text-center mt-1">년도</p>
                   </div>
-                  <div className="w-16">
+                  <div className="flex-1">
                     <input
                       ref={calcMonthRef}
                       type="text"
@@ -536,7 +536,7 @@ export default function AnnualLeavePage() {
                     />
                     <p className="text-xs text-black text-center mt-1">월</p>
                   </div>
-                  <div className="w-16">
+                  <div className="flex-1">
                     <input
                       ref={calcDayRef}
                       type="text"
