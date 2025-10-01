@@ -420,8 +420,8 @@ export default function AnnualLeavePage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {/* 입력 폼 */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-bold text-black mb-6 flex items-center">
@@ -697,19 +697,19 @@ export default function AnnualLeavePage() {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-gray-300">
-                            <th className="text-left py-2 px-2 text-black">연도</th>
-                            <th className="text-left py-2 px-2 text-black">상태</th>
-                            <th className="text-center py-2 px-2 text-blue-700">입사일 기준</th>
-                            <th className="text-center py-2 px-2 text-purple-700">회계연도 기준</th>
-                            <th className="text-center py-2 px-2 text-black">차이</th>
+                            <th className="text-left py-3 px-4 text-black">연도</th>
+                            <th className="text-left py-3 px-4 text-black">상태</th>
+                            <th className="text-center py-3 px-4 text-blue-700">입사일 기준</th>
+                            <th className="text-center py-3 px-4 text-purple-700">회계연도 기준</th>
+                            <th className="text-center py-3 px-4 text-black">차이</th>
                           </tr>
                         </thead>
                         <tbody>
                           {(isEditing ? editableHistory : result.yearlyHistory).map((yearData, index) => (
                             <tr key={index} className="border-b border-gray-200">
-                              <td className="py-2 px-2 font-medium text-black">{yearData.year}</td>
-                              <td className="py-2 px-2 text-black">{yearData.description}</td>
-                              <td className="py-2 px-2 text-center">
+                              <td className="py-3 px-4 font-medium text-black">{yearData.year}</td>
+                              <td className="py-3 px-4 text-black">{yearData.description}</td>
+                              <td className="py-3 px-4 text-center">
                                 {isEditing ? (
                                   <div className="space-y-1">
                                     <div className="flex items-center justify-center space-x-1">
@@ -717,15 +717,15 @@ export default function AnnualLeavePage() {
                                         type="number"
                                         value={yearData.hireBasedLeave}
                                         onChange={(e) => updateYearData(index, 'hireBasedLeave', parseInt(e.target.value) || 0)}
-                                        className="w-16 px-1 py-1 text-xs border border-blue-300 rounded text-center text-black"
+                                        className="w-20 px-2 py-1 text-sm border border-blue-300 rounded text-center text-black"
                                         min="0"
                                       />
-                                      <span className="text-xs text-blue-500">+</span>
+                                      <span className="text-sm text-blue-500">+</span>
                                       <input
                                         type="number"
                                         value={yearData.hireBasedAdditional}
                                         onChange={(e) => updateYearData(index, 'hireBasedAdditional', parseInt(e.target.value) || 0)}
-                                        className="w-16 px-1 py-1 text-xs border border-blue-300 rounded text-center text-black"
+                                        className="w-20 px-2 py-1 text-sm border border-blue-300 rounded text-center text-black"
                                         min="0"
                                       />
                                     </div>
@@ -749,7 +749,7 @@ export default function AnnualLeavePage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="py-2 px-2 text-center">
+                              <td className="py-3 px-4 text-center">
                                 {isEditing ? (
                                   <div className="space-y-1">
                                     <div className="flex items-center justify-center space-x-1">
@@ -757,15 +757,15 @@ export default function AnnualLeavePage() {
                                         type="number"
                                         value={yearData.accountingLeave}
                                         onChange={(e) => updateYearData(index, 'accountingLeave', parseInt(e.target.value) || 0)}
-                                        className="w-16 px-1 py-1 text-xs border border-purple-300 rounded text-center text-black"
+                                        className="w-20 px-2 py-1 text-sm border border-purple-300 rounded text-center text-black"
                                         min="0"
                                       />
-                                      <span className="text-xs text-purple-500">+</span>
+                                      <span className="text-sm text-purple-500">+</span>
                                       <input
                                         type="number"
                                         value={yearData.accountingAdditional}
                                         onChange={(e) => updateYearData(index, 'accountingAdditional', parseInt(e.target.value) || 0)}
-                                        className="w-16 px-1 py-1 text-xs border border-purple-300 rounded text-center text-black"
+                                        className="w-20 px-2 py-1 text-sm border border-purple-300 rounded text-center text-black"
                                         min="0"
                                       />
                                     </div>
@@ -789,7 +789,7 @@ export default function AnnualLeavePage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="py-2 px-2 text-center">
+                              <td className="py-3 px-4 text-center">
                                 <span className={`font-medium ${
                                   (isEditing ?
                                     (yearData.accountingLeave + yearData.accountingAdditional) - (yearData.hireBasedLeave + yearData.hireBasedAdditional) :
