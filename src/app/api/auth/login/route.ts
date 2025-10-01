@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateUser } from '@/lib/users';
+import { authenticateUser } from '@/lib/users-supabase';
 import { createUserSession, USER_SESSION_COOKIE } from '@/lib/auth';
-import { LoginCredentials } from '@/types/user';
+import { LoginCredentials } from '@/lib/users-supabase';
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Calculator, FileText, DollarSign, Search, HelpCircle, Briefcase, Bell, X, User, LogIn, LogOut, MessageSquare, ChevronDown, Mail } from "lucide-react";
+import { Calculator, FileText, DollarSign, Search, HelpCircle, Briefcase, Bell, X, User, LogIn, LogOut, MessageSquare, ChevronDown, Mail, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Notice } from "@/types";
 import noticesData from "@/data/notices.json";
@@ -100,6 +100,13 @@ export default function Home() {
       description: "근로기준법, 고용노동부 지침 등 관련 법령을 검색합니다",
       href: "/legal-search",
       color: "bg-orange-500"
+    },
+    {
+      icon: TrendingUp,
+      title: "최저임금 위반 확인",
+      description: "현재 임금이 최저임금법을 준수하는지 확인하고 개선방안을 제시합니다",
+      href: "/minimum-wage",
+      color: "bg-teal-500"
     },
     {
       icon: HelpCircle,
@@ -302,7 +309,9 @@ export default function Home() {
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <Briefcase className="h-6 w-6" />
-              <span className="text-lg font-semibold">HR-Toolkit</span>
+              <Link href="/admin/login" className="text-lg font-semibold hover:text-blue-400 transition-colors">
+                HR-Toolkit
+              </Link>
             </div>
             <p className="text-white text-sm">
               © 2024 HR-Toolkit. 모든 계산은 관련 법령에 근거합니다.

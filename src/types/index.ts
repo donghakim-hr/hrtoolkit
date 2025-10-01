@@ -55,6 +55,7 @@ export interface RetirementPayResult {
   totalAmount: number;
   calculationMethod: string;
   retirementType: string;
+  systemType?: string; // 퇴직급여제도 타입 (DB형, DC형, 혼합형)
 }
 
 // 퇴직소득세 계산 결과 타입

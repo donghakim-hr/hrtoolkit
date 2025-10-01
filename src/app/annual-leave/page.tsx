@@ -698,7 +698,7 @@ export default function AnnualLeavePage() {
                         <thead>
                           <tr className="border-b border-gray-300">
                             <th className="text-left py-3 px-4 text-black">연도</th>
-                            <th className="text-left py-3 px-4 text-black">상태</th>
+                            <th className="text-left py-3 px-4 text-black min-w-[120px]">상태</th>
                             <th className="text-center py-3 px-4 text-blue-700">입사일 기준</th>
                             <th className="text-center py-3 px-4 text-purple-700">회계연도 기준</th>
                             <th className="text-center py-3 px-4 text-black">차이</th>
@@ -708,7 +708,7 @@ export default function AnnualLeavePage() {
                           {(isEditing ? editableHistory : result.yearlyHistory).map((yearData, index) => (
                             <tr key={index} className="border-b border-gray-200">
                               <td className="py-3 px-4 font-medium text-black">{yearData.year}</td>
-                              <td className="py-3 px-4 text-black">{yearData.description}</td>
+                              <td className="py-3 px-4 text-black min-w-[120px] whitespace-nowrap">{yearData.description}</td>
                               <td className="py-3 px-4 text-center">
                                 {isEditing ? (
                                   <div className="space-y-1">
@@ -717,7 +717,7 @@ export default function AnnualLeavePage() {
                                         type="number"
                                         value={yearData.hireBasedLeave}
                                         onChange={(e) => updateYearData(index, 'hireBasedLeave', parseInt(e.target.value) || 0)}
-                                        className="w-20 px-2 py-1 text-sm border border-blue-300 rounded text-center text-black"
+                                        className="w-16 px-2 py-1 text-sm border border-blue-300 rounded text-center text-black"
                                         min="0"
                                       />
                                       <span className="text-sm text-blue-500">+</span>
@@ -725,7 +725,7 @@ export default function AnnualLeavePage() {
                                         type="number"
                                         value={yearData.hireBasedAdditional}
                                         onChange={(e) => updateYearData(index, 'hireBasedAdditional', parseInt(e.target.value) || 0)}
-                                        className="w-20 px-2 py-1 text-sm border border-blue-300 rounded text-center text-black"
+                                        className="w-16 px-2 py-1 text-sm border border-blue-300 rounded text-center text-black"
                                         min="0"
                                       />
                                     </div>
@@ -757,7 +757,7 @@ export default function AnnualLeavePage() {
                                         type="number"
                                         value={yearData.accountingLeave}
                                         onChange={(e) => updateYearData(index, 'accountingLeave', parseInt(e.target.value) || 0)}
-                                        className="w-20 px-2 py-1 text-sm border border-purple-300 rounded text-center text-black"
+                                        className="w-16 px-2 py-1 text-sm border border-purple-300 rounded text-center text-black"
                                         min="0"
                                       />
                                       <span className="text-sm text-purple-500">+</span>
@@ -765,7 +765,7 @@ export default function AnnualLeavePage() {
                                         type="number"
                                         value={yearData.accountingAdditional}
                                         onChange={(e) => updateYearData(index, 'accountingAdditional', parseInt(e.target.value) || 0)}
-                                        className="w-20 px-2 py-1 text-sm border border-purple-300 rounded text-center text-black"
+                                        className="w-16 px-2 py-1 text-sm border border-purple-300 rounded text-center text-black"
                                         min="0"
                                       />
                                     </div>

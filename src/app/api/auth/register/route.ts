@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { registerUser } from '@/lib/users';
-import { RegisterData } from '@/types/user';
+import { registerUser } from '@/lib/users-supabase';
+import { RegisterData } from '@/lib/users-supabase';
 
 export async function POST(request: NextRequest) {
   try {
     const userData: RegisterData = await request.json();
 
     // 입력 검증
-    if (!userData.username || !userData.email || !userData.password || !userData.name) {
+    if (!userData.username || !userData.email || !userData.password || !userData.name || !userData.nickname || !userData.birthDate) {
       return NextResponse.json(
         { error: '모든 필드를 입력해주세요.' },
         { status: 400 }
@@ -42,6 +42,22 @@ export async function POST(request: NextRequest) {
     if (userData.name.length < 2 || userData.name.length > 20) {
       return NextResponse.json(
         { error: '이름은 2-20자 사이여야 합니다.' },
+        { status: 400 }
+      );
+    }
+
+    // 닉네임 검증 (2-20자)
+    if (userData.nickname.length < 2 || userData.nickname.length > 20) {
+      return NextResponse.json(
+        { error: '닉네임은 2-20자 사이여야 합니다.' },
+        { status: 400 }
+      );
+    }
+
+    // 생년월일 검증
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(userData.birthDate)) {
+      return NextResponse.json(
+        { error: '올바른 생년월일 형식을 입력해주세요. (YYYY-MM-DD)' },
         { status: 400 }
       );
     }

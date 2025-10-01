@@ -43,6 +43,16 @@ export default function RetirementPayPage() {
   const [endDate, setEndDate] = useState("");
   const [averagePay, setAveragePay] = useState("");
   const [retirementType, setRetirementType] = useState("퇴직금");
+  const [retirementSystem, setRetirementSystem] = useState<"DB" | "DC" | "hybrid">("DB"); // DB형(확정급여형), DC형(확정기여형), 혼합형
+
+  // DC형 관련 상태
+  const [monthlyContribution, setMonthlyContribution] = useState("");
+  const [annualReturn, setAnnualReturn] = useState("");
+
+  // 혼합형 관련 상태
+  const [dbRatio, setDbRatio] = useState("50");
+  const [dcContribution, setDcContribution] = useState("");
+
   const [result, setResult] = useState<RetirementPayResult | null>(null);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -129,17 +139,32 @@ export default function RetirementPayPage() {
   };
 
   const calculateRetirementPay = () => {
-    if (!startDate || !endDate || !averagePay) {
-      alert("모든 필드를 입력해주세요.");
+    // 공통 필드 검증
+    if (!startDate || !endDate) {
+      alert("입사일과 퇴사일을 입력해주세요.");
       return;
+    }
+
+    // 퇴직급여제도별 필수 필드 검증
+    if (retirementSystem === "DB") {
+      if (!averagePay) {
+        alert("평균임금을 입력해주세요.");
+        return;
+      }
+    } else if (retirementSystem === "DC") {
+      if (!monthlyContribution || !annualReturn) {
+        alert("월 기여금과 운용수익률을 입력해주세요.");
+        return;
+      }
+    } else if (retirementSystem === "hybrid") {
+      if (!averagePay || !dcContribution || !dbRatio) {
+        alert("평균임금, 월 기여금, DB형 비율을 모두 입력해주세요.");
+        return;
+      }
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const monthlyPay = parseInt(averagePay.replace(/,/g, ""));
-
-    // 월급을 일급으로 변환 (월급 ÷ 30일)
-    const avgPay = Math.round(monthlyPay / 30);
 
     if (start >= end) {
       alert("퇴사일은 입사일보다 나중이어야 합니다.");
@@ -154,27 +179,80 @@ export default function RetirementPayPage() {
     // 퇴직급여 계산
     let retirementPay = 0;
     let calculationMethod = "";
+    let systemType = "";
 
-    if (retirementType === "퇴직금") {
-      // 퇴직금 = 평균임금 × 30일 × (근속연수 또는 근속일수/365)
+    if (retirementSystem === "DB") {
+      // DB형 (확정급여형) / 퇴직금제도 계산
+      const monthlyPay = parseInt(averagePay.replace(/,/g, ""));
+      const avgPay = Math.round(monthlyPay / 30); // 월급을 일급으로 변환
+
+      systemType = "DB형 (확정급여형)";
+
       if (workingDays >= 365) {
-        // 1년 이상 근속
+        // 1년 이상 근속: 평균임금 × 근속연수
         retirementPay = avgPay * 30 * (workingDays / 365);
-        calculationMethod = `${avgPay.toLocaleString()}원 × 30일 × (${workingDays}일 ÷ 365) = ${Math.round(retirementPay).toLocaleString()}원`;
+        calculationMethod = `${avgPay.toLocaleString()}원(일급) × 30일 × (${workingDays}일 ÷ 365) = ${Math.round(retirementPay).toLocaleString()}원`;
       } else {
         // 1년 미만 근속
         retirementPay = avgPay * workingDays;
-        calculationMethod = `${avgPay.toLocaleString()}원 × ${workingDays}일 = ${Math.round(retirementPay).toLocaleString()}원`;
+        calculationMethod = `${avgPay.toLocaleString()}원(일급) × ${workingDays}일 = ${Math.round(retirementPay).toLocaleString()}원`;
       }
-    } else {
-      // 퇴직연금은 기업별로 다르므로 기본 퇴직금 기준으로 참고값 제공
-      retirementPay = avgPay * 30 * (workingDays / 365);
-      calculationMethod = "퇴직연금은 기업의 적립 방식에 따라 달라집니다. (참고: 퇴직금 기준)";
+
+    } else if (retirementSystem === "DC") {
+      // DC형 (확정기여형) 계산
+      const monthlyContrib = parseInt(monthlyContribution.replace(/,/g, ""));
+      const annualReturnRate = parseFloat(annualReturn) / 100;
+
+      systemType = "DC형 (확정기여형)";
+
+      // 원금 = 월 기여금 × 근속월수
+      const principal = monthlyContrib * workingMonths;
+
+      // 복리 계산: FV = PMT × [((1 + r)^n - 1) / r]
+      // 여기서 r = 월 수익률, n = 근속월수
+      const monthlyReturnRate = annualReturnRate / 12;
+      let accumulatedAmount = 0;
+
+      if (monthlyReturnRate > 0) {
+        accumulatedAmount = monthlyContrib * (Math.pow(1 + monthlyReturnRate, workingMonths) - 1) / monthlyReturnRate;
+      } else {
+        // 수익률이 0%인 경우
+        accumulatedAmount = principal;
+      }
+
+      retirementPay = Math.round(accumulatedAmount);
+      calculationMethod = `월 기여금 ${monthlyContrib.toLocaleString()}원 × ${workingMonths}개월, 연 수익률 ${annualReturn}% = ${retirementPay.toLocaleString()}원`;
+
+    } else if (retirementSystem === "hybrid") {
+      // 혼합형 계산
+      const monthlyPay = parseInt(averagePay.replace(/,/g, ""));
+      const avgPay = Math.round(monthlyPay / 30);
+      const dbRatioNum = parseInt(dbRatio) / 100;
+      const dcRatioNum = 1 - dbRatioNum;
+      const dcContribAmount = parseInt(dcContribution.replace(/,/g, ""));
+
+      systemType = "혼합형";
+
+      // DB형 부분 계산
+      let dbPortion = 0;
+      if (workingDays >= 365) {
+        dbPortion = (avgPay * 30 * (workingDays / 365)) * dbRatioNum;
+      } else {
+        dbPortion = (avgPay * workingDays) * dbRatioNum;
+      }
+
+      // DC형 부분 계산 (간단히 원금 기준으로 계산)
+      const dcPortion = (dcContribAmount * workingMonths) * dcRatioNum;
+
+      retirementPay = Math.round(dbPortion + dcPortion);
+      calculationMethod = `DB형(${(dbRatioNum * 100).toFixed(0)}%): ${Math.round(dbPortion).toLocaleString()}원 + DC형(${(dcRatioNum * 100).toFixed(0)}%): ${Math.round(dcPortion).toLocaleString()}원`;
     }
 
-    // 계속근로가산금 계산 (5년 이상 계속근로 시)
+    // 계속근로가산금 계산 (DB형에만 적용)
     let continuousServiceBonus = 0;
-    if (workingYears >= 5) {
+    if (retirementSystem === "DB" && workingYears >= 5) {
+      const monthlyPay = parseInt(averagePay.replace(/,/g, ""));
+      const avgPay = Math.round(monthlyPay / 30);
       continuousServiceBonus = avgPay * 30 * Math.floor(workingYears / 5);
     }
 
@@ -184,13 +262,14 @@ export default function RetirementPayPage() {
       workingDays,
       workingYears,
       workingMonths,
-      averagePay: avgPay,
-      monthlyPay: monthlyPay,
+      averagePay: retirementSystem === "DB" ? Math.round(parseInt(averagePay.replace(/,/g, "")) / 30) : 0,
+      monthlyPay: retirementSystem === "DB" ? parseInt(averagePay.replace(/,/g, "")) : 0,
       retirementPay: Math.round(retirementPay),
       continuousServiceBonus,
       totalAmount: Math.round(retirementPay + continuousServiceBonus),
       calculationMethod,
-      retirementType
+      retirementType: systemType,
+      systemType: systemType
     });
   };
 
@@ -337,6 +416,64 @@ export default function RetirementPayPage() {
             </h2>
 
             <div className="space-y-4">
+              {/* 퇴직급여제도 선택 */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <label className="block text-sm font-medium text-blue-800 mb-3">
+                  🏛️ 퇴직급여제도 선택
+                </label>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="retirementSystem"
+                        value="DB"
+                        checked={retirementSystem === "DB"}
+                        onChange={(e) => setRetirementSystem(e.target.value as "DB" | "DC" | "hybrid")}
+                        className="form-radio h-4 w-4 text-blue-600 border-blue-300 focus:ring-blue-500"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-black">DB형 (확정급여형) / 퇴직금제도</span>
+                        <p className="text-xs text-gray-600">기존 퇴직금제도와 동일한 계산식 (평균임금 × 근속연수)</p>
+                      </div>
+                    </label>
+                  </div>
+                  <div>
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="retirementSystem"
+                        value="DC"
+                        checked={retirementSystem === "DC"}
+                        onChange={(e) => setRetirementSystem(e.target.value as "DB" | "DC" | "hybrid")}
+                        className="form-radio h-4 w-4 text-blue-600 border-blue-300 focus:ring-blue-500"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-black">DC형 (확정기여형)</span>
+                        <p className="text-xs text-gray-600">매월 일정 금액을 적립하여 운용한 금액 지급</p>
+                      </div>
+                    </label>
+                  </div>
+                  <div>
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="retirementSystem"
+                        value="hybrid"
+                        checked={retirementSystem === "hybrid"}
+                        onChange={(e) => setRetirementSystem(e.target.value as "DB" | "DC" | "hybrid")}
+                        className="form-radio h-4 w-4 text-blue-600 border-blue-300 focus:ring-blue-500"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-black">혼합형</span>
+                        <p className="text-xs text-gray-600">DB형과 DC형을 함께 운영하는 제도</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* 공통 필드 - 입사일과 퇴사일 */}
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   입사일
@@ -361,44 +498,159 @@ export default function RetirementPayPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  평균임금 (월급)
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={averagePay}
-                    onChange={(e) => setAveragePay(formatNumber(e.target.value))}
-                    placeholder="예: 3,000,000"
-                    className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
-                  />
-                  <span className="absolute right-3 top-2 text-black">원</span>
-                </div>
-                <p className="text-xs text-black mt-1">
-                  * 퇴직일 이전 3개월간 지급받은 월평균 임금 (월 기준으로 입력)
-                </p>
-              </div>
+              {/* DB형(확정급여형) 및 퇴직금제도 입력 필드 */}
+              {retirementSystem === "DB" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      평균임금 (월급)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={averagePay}
+                        onChange={(e) => setAveragePay(formatNumber(e.target.value))}
+                        placeholder="예: 3,000,000"
+                        className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                      />
+                      <span className="absolute right-3 top-2 text-black">원</span>
+                    </div>
+                    <p className="text-xs text-black mt-1">
+                      * 퇴직일 이전 3개월간 지급받은 월평균 임금 (월 기준으로 입력)
+                    </p>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  퇴직급여 제도
-                </label>
-                <select
-                  value={retirementType}
-                  onChange={(e) => setRetirementType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
-                >
-                  <option value="퇴직금">퇴직금제</option>
-                  <option value="퇴직연금">퇴직연금제 (참고)</option>
-                </select>
-              </div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className="text-sm text-green-800 font-medium">💡 계산식</p>
+                    <p className="text-xs text-green-700 mt-1">퇴직급여 = 평균임금 × 근속연수</p>
+                  </div>
+                </>
+              )}
+
+              {/* DC형(확정기여형) 입력 필드 */}
+              {retirementSystem === "DC" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      월 기여금 (원)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={monthlyContribution}
+                        onChange={(e) => setMonthlyContribution(formatNumber(e.target.value))}
+                        placeholder="예: 200,000"
+                        className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                      />
+                      <span className="absolute right-3 top-2 text-black">원</span>
+                    </div>
+                    <p className="text-xs text-black mt-1">
+                      * 매월 적립된 기여금 금액 (월급의 8.3% 이상)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      운용수익률 (연간, %)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={annualReturn}
+                        onChange={(e) => setAnnualReturn(e.target.value)}
+                        placeholder="예: 3.5"
+                        className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                      />
+                      <span className="absolute right-3 top-2 text-black">%</span>
+                    </div>
+                    <p className="text-xs text-black mt-1">
+                      * 기여금 운용으로 얻은 연평균 수익률
+                    </p>
+                  </div>
+
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                    <p className="text-sm text-purple-800 font-medium">💡 계산식</p>
+                    <p className="text-xs text-purple-700 mt-1">퇴직급여 = 적립원금 + 운용수익</p>
+                  </div>
+                </>
+              )}
+
+              {/* 혼합형 입력 필드 */}
+              {retirementSystem === "hybrid" && (
+                <>
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                    <p className="text-sm text-orange-800 font-medium">🔄 혼합형 제도</p>
+                    <p className="text-xs text-orange-700 mt-1">
+                      DB형과 DC형을 함께 운영하는 제도입니다. 각각의 비율을 설정하세요.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      DB형 비율 (%)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={dbRatio}
+                        onChange={(e) => setDbRatio(e.target.value)}
+                        className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                      />
+                      <span className="absolute right-3 top-2 text-black">%</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      평균임금 (월급) - DB형 계산용
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={averagePay}
+                        onChange={(e) => setAveragePay(formatNumber(e.target.value))}
+                        placeholder="예: 3,000,000"
+                        className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                      />
+                      <span className="absolute right-3 top-2 text-black">원</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      월 기여금 (원) - DC형 계산용
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={dcContribution}
+                        onChange={(e) => setDcContribution(formatNumber(e.target.value))}
+                        placeholder="예: 200,000"
+                        className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                      />
+                      <span className="absolute right-3 top-2 text-black">원</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                    <p className="text-sm text-indigo-800 font-medium">💡 계산식</p>
+                    <p className="text-xs text-indigo-700 mt-1">
+                      퇴직급여 = (DB형 급여 × DB비율) + (DC형 급여 × DC비율)
+                    </p>
+                  </div>
+                </>
+              )}
 
               <button
                 onClick={calculateRetirementPay}
                 className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
               >
-                퇴직급여 계산하기
+                {retirementSystem === "DB" ? "퇴직급여 계산하기" :
+                 retirementSystem === "DC" ? "DC형 퇴직급여 계산하기" :
+                 "혼합형 퇴직급여 계산하기"}
               </button>
             </div>
           </div>

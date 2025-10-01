@@ -22,6 +22,9 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const [emailValidating, setEmailValidating] = useState(false);
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const [usernameValid, setUsernameValid] = useState<boolean | null>(null);
+  const [usernameMessage, setUsernameMessage] = useState("");
   const router = useRouter();
 
   // 이메일 검증 함수
@@ -46,6 +49,40 @@ export default function RegisterPage() {
       setEmailValid(false);
     } finally {
       setEmailValidating(false);
+    }
+  };
+
+  // 아이디 중복확인 함수
+  const checkUsername = async (username: string) => {
+    if (!username || username.length < 3) {
+      setUsernameValid(false);
+      setUsernameMessage("아이디는 3자 이상이어야 합니다.");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+      setUsernameValid(false);
+      setUsernameMessage("아이디는 3-20자의 영문, 숫자만 사용 가능합니다.");
+      return;
+    }
+
+    setUsernameChecking(true);
+    try {
+      const response = await fetch('/api/auth/check-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+
+      const data = await response.json();
+      setUsernameValid(data.available);
+      setUsernameMessage(data.message || data.error || "");
+    } catch (error) {
+      console.error('Username check error:', error);
+      setUsernameValid(false);
+      setUsernameMessage("아이디 확인 중 오류가 발생했습니다.");
+    } finally {
+      setUsernameChecking(false);
     }
   };
 
@@ -87,6 +124,12 @@ export default function RegisterPage() {
 
     if (!formData.username.trim()) {
       setError("아이디를 입력해주세요.");
+      setLoading(false);
+      return;
+    }
+
+    if (usernameValid !== true) {
+      setError("사용 가능한 아이디를 입력해주세요.");
       setLoading(false);
       return;
     }
@@ -144,6 +187,12 @@ export default function RegisterPage() {
       [name]: value
     };
     setFormData(newFormData);
+
+    // 아이디가 변경되면 검증 상태 초기화
+    if (name === 'username') {
+      setUsernameValid(null);
+      setUsernameMessage("");
+    }
 
     // 이메일 필드 변경 시 검증 실행
     if (name === 'email') {
@@ -322,20 +371,48 @@ export default function RegisterPage() {
               <label htmlFor="username" className="block text-sm font-medium text-black mb-2">
                 아이디 *
               </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  required
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  placeholder="3-20자의 영문, 숫자"
-                  disabled={loading}
-                />
+              <div className="flex space-x-2">
+                <div className="relative flex-1">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
+                  <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    required
+                    value={formData.username}
+                    onChange={handleChange}
+                    onBlur={() => formData.username && checkUsername(formData.username)}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                      usernameValid === true 
+                        ? 'border-green-300 bg-green-50' 
+                        : usernameValid === false 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="3-20자의 영문, 숫자"
+                    disabled={loading}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => checkUsername(formData.username)}
+                  disabled={!formData.username || usernameChecking || loading}
+                  className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
+                >
+                  {usernameChecking ? '확인중...' : '중복확인'}
+                </button>
               </div>
+              
+              {/* 아이디 검증 메시지 */}
+              {usernameMessage && (
+                <div className={`mt-2 text-sm ${
+                  usernameValid === true 
+                    ? 'text-green-600' 
+                    : 'text-red-600'
+                }`}>
+                  {usernameValid === true ? '✓ ' : '✗ '}{usernameMessage}
+                </div>
+              )}
             </div>
 
             {/* 비밀번호 입력 */}
