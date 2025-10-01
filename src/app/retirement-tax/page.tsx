@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, FileText, Calculator, Info, AlertCircle, Download, FileSpreadsheet, Save, Check } from "lucide-react";
@@ -14,7 +14,7 @@ interface UserSession {
   email: string;
 }
 
-export default function RetirementTaxPage() {
+function RetirementTaxContent() {
   const searchParams = useSearchParams();
   const [retirementPay, setRetirementPay] = useState("");
   const [workingYears, setWorkingYears] = useState("");
@@ -524,5 +524,18 @@ export default function RetirementTaxPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RetirementTaxPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-black">로딩 중...</p>
+      </div>
+    </div>}>
+      <RetirementTaxContent />
+    </Suspense>
   );
 }
