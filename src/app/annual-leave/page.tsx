@@ -97,7 +97,7 @@ export default function AnnualLeavePage() {
     value: string,
     setter: (value: string) => void,
     maxLength: number,
-    nextRef?: React.RefObject<HTMLInputElement>
+    nextRef?: React.RefObject<HTMLInputElement | null>
   ) => {
     // 숫자만 허용
     const numericValue = value.replace(/\D/g, '');

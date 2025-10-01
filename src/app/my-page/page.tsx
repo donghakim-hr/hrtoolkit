@@ -390,7 +390,7 @@ export default function MyPage() {
                           <p className="text-black text-center py-4">저장된 계산 결과가 없습니다.</p>
                         ) : (
                           <div className="space-y-3">
-                            {calcs.map((calc) => (
+                            {calcs.map((calc: SavedCalculation) => (
                               <div key={calc.id} className="bg-white p-4 rounded-lg border border-gray-100 flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
                                   <FileText className="h-4 w-4 text-black" />

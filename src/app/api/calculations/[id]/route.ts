@@ -9,7 +9,7 @@ const calculationsFilePath = path.join(process.cwd(), 'src/data/calculations.jso
 // 특정 계산 결과 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await checkUserAuth();
@@ -17,7 +17,7 @@ export async function GET(
       return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // 계산 결과 로드
     let calculations: SavedCalculation[] = [];
@@ -46,7 +46,7 @@ export async function GET(
 // 계산 결과 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await checkUserAuth();
@@ -54,7 +54,7 @@ export async function DELETE(
       return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // 계산 결과 로드
     let calculations: SavedCalculation[] = [];
