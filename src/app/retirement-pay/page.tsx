@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, DollarSign, Calendar, Info, AlertTriangle, Calculator, Download, FileText, FileSpreadsheet, Save, Check, Plus, Minus } from "lucide-react";
+import { ArrowLeft, DollarSign, Calendar, Info, AlertTriangle, Calculator, Download, FileText, FileSpreadsheet, Save, Check, Plus, Minus, ChevronDown, ChevronUp } from "lucide-react";
 import { RetirementPayResult } from "@/types";
 import { exportRetirementPayToPDF, exportRetirementPayToExcel } from "@/utils/exportUtils";
 
@@ -106,6 +106,9 @@ export default function RetirementPayPage() {
   const [fixedBonus, setFixedBonus] = useState("");
   const [annualLeaveAllowance, setAnnualLeaveAllowance] = useState("");
   const [averagePayResult, setAveragePayResult] = useState<AveragePayResult | null>(null);
+  
+  // 평균임금 계산기 접기/펼치기 상태
+  const [isAveragePayCalculatorOpen, setIsAveragePayCalculatorOpen] = useState(false);
 
   // 사용자 인증 상태 확인
   useEffect(() => {
@@ -763,11 +766,40 @@ export default function RetirementPayPage() {
           </div>
 
           {/* 평균임금 계산기 */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-black mb-6 flex items-center">
-              <Calculator className="h-6 w-6 mr-3 text-blue-600" />
-              평균임금 계산기
-            </h2>
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            {/* 헤더 - 항상 표시 */}
+            <div 
+              className="p-6 pb-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => setIsAveragePayCalculatorOpen(!isAveragePayCalculatorOpen)}
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-black flex items-center">
+                  <Calculator className="h-6 w-6 mr-3 text-blue-600" />
+                  평균임금 계산기
+                </h2>
+                <button className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors">
+                  <span className="text-sm font-medium">
+                    {isAveragePayCalculatorOpen ? '접기' : '펼치기'}
+                  </span>
+                  {isAveragePayCalculatorOpen ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              {!isAveragePayCalculatorOpen && (
+                <p className="text-sm text-gray-600 mt-2">
+                  퇴직 전 3개월 급여를 기반으로 평균임금을 계산합니다
+                </p>
+              )}
+            </div>
+
+            {/* 계산기 콘텐츠 - 접기/펼치기 */}
+            <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+              isAveragePayCalculatorOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+            }`}>
+              <div className="p-6 pt-4">
 
             <div className="space-y-4">
               {/* 퇴사일 */}
@@ -1151,6 +1183,7 @@ export default function RetirementPayPage() {
                   </p>
                 </div>
               )}
+              </div>
             </div>
           </div>
 
