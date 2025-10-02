@@ -16,6 +16,10 @@ interface UserSession {
 
 interface MonthlyPayData {
   month: number;
+  monthName: string;
+  startDate: string;
+  endDate: string;
+  workingDays: string; // 월별 이수일수
   baseSalary: string;
   allowances: string[];
   totalAllowances: string;
@@ -35,6 +39,11 @@ interface AveragePayResult {
   dailyAnnualLeaveAllowance: number;
   totalDailyPay: number;
   averagePay: number;
+  period: {
+    start: string;
+    end: string;
+    totalDays: number;
+  };
 }
 
 export default function RetirementPayPage() {
@@ -63,6 +72,10 @@ export default function RetirementPayPage() {
   const [retirementDate, setRetirementDate] = useState("");
   const [month1Data, setMonth1Data] = useState<MonthlyPayData>({
     month: 1,
+    monthName: "",
+    startDate: "",
+    endDate: "",
+    workingDays: "",
     baseSalary: "",
     allowances: [""],
     totalAllowances: "0",
@@ -70,6 +83,10 @@ export default function RetirementPayPage() {
   });
   const [month2Data, setMonth2Data] = useState<MonthlyPayData>({
     month: 2,
+    monthName: "",
+    startDate: "",
+    endDate: "",
+    workingDays: "",
     baseSalary: "",
     allowances: [""],
     totalAllowances: "0",
@@ -77,6 +94,10 @@ export default function RetirementPayPage() {
   });
   const [month3Data, setMonth3Data] = useState<MonthlyPayData>({
     month: 3,
+    monthName: "",
+    startDate: "",
+    endDate: "",
+    workingDays: "",
     baseSalary: "",
     allowances: [""],
     totalAllowances: "0",
@@ -277,6 +298,62 @@ export default function RetirementPayPage() {
     return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
+  // 퇴직일자 기준 3개월 기간 자동 계산
+  const calculateThreeMonthPeriod = (retirementDateStr: string) => {
+    if (!retirementDateStr) return;
+
+    const retirementDate = new Date(retirementDateStr);
+    const periodEnd = new Date(retirementDate);
+    periodEnd.setDate(periodEnd.getDate() - 1); // 퇴직일 전날까지
+    
+    const periodStart = new Date(periodEnd);
+    periodStart.setMonth(periodStart.getMonth() - 3);
+    periodStart.setDate(periodStart.getDate() + 1); // 3개월 전 다음날부터
+
+    // 각 월의 기간 계산
+    const month3Start = new Date(periodStart);
+    const month3End = new Date(month3Start.getFullYear(), month3Start.getMonth() + 1, 0); // 해당 월 마지막 날
+    
+    const month2Start = new Date(month3End);
+    month2Start.setDate(month2Start.getDate() + 1);
+    const month2End = new Date(month2Start.getFullYear(), month2Start.getMonth() + 1, 0);
+    
+    const month1Start = new Date(month2End);
+    month1Start.setDate(month1Start.getDate() + 1);
+    const month1End = new Date(periodEnd);
+
+    // 월별 데이터 업데이트
+    setMonth3Data(prev => ({
+      ...prev,
+      monthName: `${month3Start.getFullYear()}년 ${month3Start.getMonth() + 1}월`,
+      startDate: month3Start.toLocaleDateString('ko-KR'),
+      endDate: month3End.toLocaleDateString('ko-KR'),
+      workingDays: "" // 사용자가 입력할 수 있도록 빈 값으로 설정
+    }));
+
+    setMonth2Data(prev => ({
+      ...prev,
+      monthName: `${month2Start.getFullYear()}년 ${month2Start.getMonth() + 1}월`,
+      startDate: month2Start.toLocaleDateString('ko-KR'),
+      endDate: month2End.toLocaleDateString('ko-KR'),
+      workingDays: ""
+    }));
+
+    setMonth1Data(prev => ({
+      ...prev,
+      monthName: `${month1Start.getFullYear()}년 ${month1Start.getMonth() + 1}월`,
+      startDate: month1Start.toLocaleDateString('ko-KR'),
+      endDate: month1End.toLocaleDateString('ko-KR'),
+      workingDays: ""
+    }));
+  };
+
+  // 퇴직일자 변경 핸들러
+  const handleRetirementDateChange = (dateString: string) => {
+    setRetirementDate(dateString);
+    calculateThreeMonthPeriod(dateString);
+  };
+
   // 평균임금 계산 함수들
   const updateMonthData = (monthData: MonthlyPayData, setMonthData: (data: MonthlyPayData) => void, field: string, value: string, index?: number) => {
     const newData = { ...monthData };
@@ -285,6 +362,8 @@ export default function RetirementPayPage() {
       newData.baseSalary = formatNumber(value);
     } else if (field === 'allowance' && index !== undefined) {
       newData.allowances[index] = formatNumber(value);
+    } else if (field === 'workingDays') {
+      newData.workingDays = value;
     }
 
     // 수당 총합 계산
@@ -325,8 +404,14 @@ export default function RetirementPayPage() {
   };
 
   const calculateAveragePay = () => {
+    // 입력 검증
     if (!retirementDate || !month1Data.baseSalary || !month2Data.baseSalary || !month3Data.baseSalary) {
       alert("퇴사일과 3개월 급여 정보를 모두 입력해주세요.");
+      return;
+    }
+
+    if (!month1Data.workingDays || !month2Data.workingDays || !month3Data.workingDays) {
+      alert("각 월의 이수일수를 입력해주세요.");
       return;
     }
 
@@ -336,22 +421,44 @@ export default function RetirementPayPage() {
     const month3Total = parseInt(month3Data.monthlyTotal.replace(/,/g, '')) || 0;
     const totalSalary = month1Total + month2Total + month3Total;
 
-    // 3개월 총 일수 (90일)
-    const totalWorkingDays = 90;
+    // 3개월 총 이수일수 (실제 근무일수)
+    const month1Days = parseInt(month1Data.workingDays) || 0;
+    const month2Days = parseInt(month2Data.workingDays) || 0;
+    const month3Days = parseInt(month3Data.workingDays) || 0;
+    const totalWorkingDays = month1Days + month2Days + month3Days;
 
-    // 기본 평균임금 (일급)
+    if (totalWorkingDays === 0) {
+      alert("총 이수일수가 0일입니다. 이수일수를 확인해주세요.");
+      return;
+    }
+
+    // 기본 평균임금 (일급) = 3개월 총 급여 ÷ 3개월 총 이수일수
     const basicAveragePay = totalSalary / totalWorkingDays;
 
-    // 고정상여금 일할 계산
+    // 고정상여금 일할 계산 (연간 지급액 ÷ 365일)
     const fixedBonusNum = parseInt(fixedBonus.replace(/,/g, '')) || 0;
     const dailyFixedBonus = fixedBonusNum / 365;
 
-    // 연차수당 일할 계산
+    // 연차수당 일할 계산 (연간 지급액 ÷ 365일)
     const annualLeaveAllowanceNum = parseInt(annualLeaveAllowance.replace(/,/g, '')) || 0;
     const dailyAnnualLeaveAllowance = annualLeaveAllowanceNum / 365;
 
     // 최종 평균임금 (일급)
     const totalDailyPay = basicAveragePay + dailyFixedBonus + dailyAnnualLeaveAllowance;
+
+    // 퇴직일 기준 기간 계산
+    const retirementDateObj = new Date(retirementDate);
+    const periodEnd = new Date(retirementDateObj);
+    periodEnd.setDate(periodEnd.getDate() - 1);
+    const periodStart = new Date(periodEnd);
+    periodStart.setMonth(periodStart.getMonth() - 3);
+    periodStart.setDate(periodStart.getDate() + 1);
+
+    const period = {
+      start: periodStart.toLocaleDateString('ko-KR'),
+      end: periodEnd.toLocaleDateString('ko-KR'),
+      totalDays: Math.floor((periodEnd.getTime() - periodStart.getTime()) / (24 * 60 * 60 * 1000)) + 1
+    };
 
     setAveragePayResult({
       month1: month1Data,
@@ -365,7 +472,8 @@ export default function RetirementPayPage() {
       dailyFixedBonus,
       dailyAnnualLeaveAllowance,
       totalDailyPay,
-      averagePay: Math.round(totalDailyPay)
+      averagePay: Math.round(totalDailyPay),
+      period
     });
 
     // 퇴직급여 계산기에 평균임금 자동 입력
@@ -670,9 +778,12 @@ export default function RetirementPayPage() {
                 <input
                   type="date"
                   value={retirementDate}
-                  onChange={(e) => setRetirementDate(e.target.value)}
+                  onChange={(e) => handleRetirementDateChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 />
+                <p className="text-xs text-blue-600 mt-1">
+                  퇴사일을 선택하면 평균임금 계산 기간(퇴사 전 3개월)이 자동으로 계산됩니다.
+                </p>
               </div>
 
               {/* 퇴사 직전 3개월 급여 */}
@@ -680,11 +791,41 @@ export default function RetirementPayPage() {
                 <h3 className="text-lg font-semibold text-black">퇴사 직전 3개월 급여</h3>
 
                 {/* 3개월차 */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-black mb-3">3개월 전 (첫 번째 달)</h4>
-                  <div className="space-y-3">
+                <div className="border border-gray-200 rounded-lg p-4 bg-blue-50">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-medium text-black">
+                      {month3Data.monthName || "3개월 전"} 
+                    </h4>
+                    {month3Data.startDate && month3Data.endDate && (
+                      <span className="text-sm text-blue-600">
+                        {month3Data.startDate} ~ {month3Data.endDate}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* 이수일수 */}
                     <div>
-                      <label className="block text-sm font-medium text-black mb-1">고정급여 (계약)</label>
+                      <label className="block text-sm font-medium text-black mb-1">
+                        이수일수 <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={month3Data.workingDays}
+                          onChange={(e) => updateMonthData(month3Data, setMonth3Data, 'workingDays', e.target.value)}
+                          placeholder="예: 22"
+                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                        />
+                        <span className="absolute right-3 top-2 text-black">일</span>
+                      </div>
+                    </div>
+
+                    {/* 기본급 */}
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">
+                        기본급 <span className="text-red-500">*</span>
+                      </label>
                       <div className="relative">
                         <input
                           type="text"
@@ -696,165 +837,228 @@ export default function RetirementPayPage() {
                         <span className="absolute right-3 top-2 text-black">원</span>
                       </div>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-black mb-1">수당</label>
-                      {month3Data.allowances.map((allowance, index) => (
-                        <div key={index} className="flex items-center gap-2 mb-2">
-                          <div className="relative flex-1">
-                            <input
-                              type="text"
-                              value={allowance}
-                              onChange={(e) => updateMonthData(month3Data, setMonth3Data, 'allowance', e.target.value, index)}
-                              placeholder={`수당${index + 1}`}
-                              className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-                            />
-                            <span className="absolute right-3 top-2 text-black">원</span>
-                          </div>
-                          {month3Data.allowances.length > 1 && (
-                            <button
-                              onClick={() => removeAllowance(month3Data, setMonth3Data, index)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                            >
-                              <Minus className="h-4 w-4" />
-                            </button>
-                          )}
+                  {/* 수당 */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-black mb-2">수당</label>
+                    {month3Data.allowances.map((allowance, index) => (
+                      <div key={index} className="flex items-center gap-2 mb-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={allowance}
+                            onChange={(e) => updateMonthData(month3Data, setMonth3Data, 'allowance', e.target.value, index)}
+                            placeholder={`수당${index + 1}`}
+                            className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                          />
+                          <span className="absolute right-3 top-2 text-black">원</span>
                         </div>
-                      ))}
-                      <button
-                        onClick={() => addAllowance(month3Data, setMonth3Data)}
-                        className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        수당 추가
-                      </button>
-                    </div>
-
-                    <div className="bg-gray-50 p-3 rounded">
-                      <div className="flex justify-between text-sm">
-                        <span>월 총액:</span>
-                        <span className="font-medium">{month3Data.monthlyTotal}원</span>
+                        {month3Data.allowances.length > 1 && (
+                          <button
+                            onClick={() => removeAllowance(month3Data, setMonth3Data, index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
+                    ))}
+                    <button
+                      onClick={() => addAllowance(month3Data, setMonth3Data)}
+                      className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      수당 추가
+                    </button>
+                  </div>
+
+                  <div className="mt-4 bg-white p-3 rounded border">
+                    <div className="flex justify-between text-sm">
+                      <span>월 총 급여:</span>
+                      <span className="font-medium text-blue-600">{month3Data.monthlyTotal}원</span>
                     </div>
                   </div>
                 </div>
 
                 {/* 2개월차 */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-black mb-3">2개월 전 (두 번째 달)</h4>
-                  <div className="space-y-3">
+                <div className="border border-gray-200 rounded-lg p-4 bg-green-50">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-medium text-black">
+                      {month2Data.monthName || "2개월 전"}
+                    </h4>
+                    {month2Data.startDate && month2Data.endDate && (
+                      <span className="text-sm text-green-600">
+                        {month2Data.startDate} ~ {month2Data.endDate}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* 이수일수 */}
                     <div>
-                      <label className="block text-sm font-medium text-black mb-1">고정급여 (계약)</label>
+                      <label className="block text-sm font-medium text-black mb-1">
+                        이수일수 <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={month2Data.workingDays}
+                          onChange={(e) => updateMonthData(month2Data, setMonth2Data, 'workingDays', e.target.value)}
+                          placeholder="예: 22"
+                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                        />
+                        <span className="absolute right-3 top-2 text-black">일</span>
+                      </div>
+                    </div>
+
+                    {/* 기본급 */}
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">
+                        기본급 <span className="text-red-500">*</span>
+                      </label>
                       <div className="relative">
                         <input
                           type="text"
                           value={month2Data.baseSalary}
                           onChange={(e) => updateMonthData(month2Data, setMonth2Data, 'baseSalary', e.target.value)}
                           placeholder="예: 2,500,000"
-                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                         />
                         <span className="absolute right-3 top-2 text-black">원</span>
                       </div>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-black mb-1">수당</label>
-                      {month2Data.allowances.map((allowance, index) => (
-                        <div key={index} className="flex items-center gap-2 mb-2">
-                          <div className="relative flex-1">
-                            <input
-                              type="text"
-                              value={allowance}
-                              onChange={(e) => updateMonthData(month2Data, setMonth2Data, 'allowance', e.target.value, index)}
-                              placeholder={`수당${index + 1}`}
-                              className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-                            />
-                            <span className="absolute right-3 top-2 text-black">원</span>
-                          </div>
-                          {month2Data.allowances.length > 1 && (
-                            <button
-                              onClick={() => removeAllowance(month2Data, setMonth2Data, index)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                            >
-                              <Minus className="h-4 w-4" />
-                            </button>
-                          )}
+                  {/* 수당 */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-black mb-2">수당</label>
+                    {month2Data.allowances.map((allowance, index) => (
+                      <div key={index} className="flex items-center gap-2 mb-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={allowance}
+                            onChange={(e) => updateMonthData(month2Data, setMonth2Data, 'allowance', e.target.value, index)}
+                            placeholder={`수당${index + 1}`}
+                            className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                          />
+                          <span className="absolute right-3 top-2 text-black">원</span>
                         </div>
-                      ))}
-                      <button
-                        onClick={() => addAllowance(month2Data, setMonth2Data)}
-                        className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        수당 추가
-                      </button>
-                    </div>
-
-                    <div className="bg-gray-50 p-3 rounded">
-                      <div className="flex justify-between text-sm">
-                        <span>월 총액:</span>
-                        <span className="font-medium">{month2Data.monthlyTotal}원</span>
+                        {month2Data.allowances.length > 1 && (
+                          <button
+                            onClick={() => removeAllowance(month2Data, setMonth2Data, index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
+                    ))}
+                    <button
+                      onClick={() => addAllowance(month2Data, setMonth2Data)}
+                      className="flex items-center text-green-600 hover:text-green-700 text-sm"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      수당 추가
+                    </button>
+                  </div>
+
+                  <div className="mt-4 bg-white p-3 rounded border">
+                    <div className="flex justify-between text-sm">
+                      <span>월 총 급여:</span>
+                      <span className="font-medium text-green-600">{month2Data.monthlyTotal}원</span>
                     </div>
                   </div>
                 </div>
 
                 {/* 1개월차 */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-black mb-3">1개월 전 (세 번째 달)</h4>
-                  <div className="space-y-3">
+                <div className="border border-gray-200 rounded-lg p-4 bg-yellow-50">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-medium text-black">
+                      {month1Data.monthName || "1개월 전"}
+                    </h4>
+                    {month1Data.startDate && month1Data.endDate && (
+                      <span className="text-sm text-yellow-600">
+                        {month1Data.startDate} ~ {month1Data.endDate}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* 이수일수 */}
                     <div>
-                      <label className="block text-sm font-medium text-black mb-1">고정급여 (계약)</label>
+                      <label className="block text-sm font-medium text-black mb-1">
+                        이수일수 <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={month1Data.workingDays}
+                          onChange={(e) => updateMonthData(month1Data, setMonth1Data, 'workingDays', e.target.value)}
+                          placeholder="예: 22"
+                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-black"
+                        />
+                        <span className="absolute right-3 top-2 text-black">일</span>
+                      </div>
+                    </div>
+
+                    {/* 기본급 */}
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">
+                        기본급 <span className="text-red-500">*</span>
+                      </label>
                       <div className="relative">
                         <input
                           type="text"
                           value={month1Data.baseSalary}
                           onChange={(e) => updateMonthData(month1Data, setMonth1Data, 'baseSalary', e.target.value)}
                           placeholder="예: 2,500,000"
-                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-black"
                         />
                         <span className="absolute right-3 top-2 text-black">원</span>
                       </div>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-black mb-1">수당</label>
-                      {month1Data.allowances.map((allowance, index) => (
-                        <div key={index} className="flex items-center gap-2 mb-2">
-                          <div className="relative flex-1">
-                            <input
-                              type="text"
-                              value={allowance}
-                              onChange={(e) => updateMonthData(month1Data, setMonth1Data, 'allowance', e.target.value, index)}
-                              placeholder={`수당${index + 1}`}
-                              className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-                            />
-                            <span className="absolute right-3 top-2 text-black">원</span>
-                          </div>
-                          {month1Data.allowances.length > 1 && (
-                            <button
-                              onClick={() => removeAllowance(month1Data, setMonth1Data, index)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                            >
-                              <Minus className="h-4 w-4" />
-                            </button>
-                          )}
+                  {/* 수당 */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-black mb-2">수당</label>
+                    {month1Data.allowances.map((allowance, index) => (
+                      <div key={index} className="flex items-center gap-2 mb-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={allowance}
+                            onChange={(e) => updateMonthData(month1Data, setMonth1Data, 'allowance', e.target.value, index)}
+                            placeholder={`수당${index + 1}`}
+                            className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-black"
+                          />
+                          <span className="absolute right-3 top-2 text-black">원</span>
                         </div>
-                      ))}
-                      <button
-                        onClick={() => addAllowance(month1Data, setMonth1Data)}
-                        className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        수당 추가
-                      </button>
-                    </div>
-
-                    <div className="bg-gray-50 p-3 rounded">
-                      <div className="flex justify-between text-sm">
-                        <span>월 총액:</span>
-                        <span className="font-medium">{month1Data.monthlyTotal}원</span>
+                        {month1Data.allowances.length > 1 && (
+                          <button
+                            onClick={() => removeAllowance(month1Data, setMonth1Data, index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
+                    ))}
+                    <button
+                      onClick={() => addAllowance(month1Data, setMonth1Data)}
+                      className="flex items-center text-yellow-600 hover:text-yellow-700 text-sm"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      수당 추가
+                    </button>
+                  </div>
+
+                  <div className="mt-4 bg-white p-3 rounded border">
+                    <div className="flex justify-between text-sm">
+                      <span>월 총 급여:</span>
+                      <span className="font-medium text-yellow-600">{month1Data.monthlyTotal}원</span>
                     </div>
                   </div>
                 </div>
