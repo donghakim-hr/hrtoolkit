@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     const newUser = await registerUser(userData);
 
     // 비밀번호 제외하고 응답
-    const { password: _, ...userResponse } = newUser;
+    const { password_hash: _, ...userResponse } = newUser;
 
     return NextResponse.json({
       success: true,

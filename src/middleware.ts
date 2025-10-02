@@ -35,7 +35,7 @@ export function middleware(request: NextRequest) {
     // 의심스러운 요청 차단
     if (!userAgent || userAgent.includes('bot') || userAgent.includes('crawler')) {
       // 정상적인 검색엔진 봇은 제외
-      if (!userAgent.includes('Googlebot') && !userAgent.includes('Bingbot')) {
+      if (userAgent && !userAgent.includes('Googlebot') && !userAgent.includes('Bingbot')) {
         return new NextResponse('Forbidden', { status: 403 })
       }
     }

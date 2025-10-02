@@ -39,7 +39,7 @@ export const supabaseClientOptions = {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce'
+    flowType: 'pkce' as const
   },
   db: {
     schema: 'public'
