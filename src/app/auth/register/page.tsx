@@ -15,6 +15,11 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: ""
   });
+  
+  // 생년월일 분리 상태
+  const [birthYear, setBirthYear] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthDay, setBirthDay] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -83,6 +88,94 @@ export default function RegisterPage() {
       setUsernameMessage("아이디 확인 중 오류가 발생했습니다.");
     } finally {
       setUsernameChecking(false);
+    }
+  };
+
+  // 생년월일 입력 핸들러
+  const handleBirthDateChange = (field: 'year' | 'month' | 'day', value: string) => {
+    let formattedValue = value.replace(/\D/g, ''); // 숫자만 허용
+    
+    if (field === 'year') {
+      formattedValue = formattedValue.slice(0, 4);
+      setBirthYear(formattedValue);
+      // 4자리 입력되면 월 입력으로 이동
+      if (formattedValue.length === 4) {
+        setTimeout(() => {
+          const monthInput = document.getElementById('birthMonth');
+          monthInput?.focus();
+        }, 0);
+      }
+    } else if (field === 'month') {
+      formattedValue = formattedValue.slice(0, 2);
+      // 월 유효성 검사
+      if (formattedValue.length === 1 && parseInt(formattedValue) > 1) {
+        formattedValue = '0' + formattedValue;
+      }
+      if (formattedValue.length === 2) {
+        const monthNum = parseInt(formattedValue);
+        if (monthNum > 12) {
+          formattedValue = '12';
+        } else if (monthNum < 1) {
+          formattedValue = '01';
+        }
+      }
+      setBirthMonth(formattedValue);
+      // 2자리 입력되면 일 입력으로 이동
+      if (formattedValue.length === 2) {
+        setTimeout(() => {
+          const dayInput = document.getElementById('birthDay');
+          dayInput?.focus();
+        }, 0);
+      }
+    } else if (field === 'day') {
+      formattedValue = formattedValue.slice(0, 2);
+      // 일 유효성 검사
+      if (formattedValue.length === 1 && parseInt(formattedValue) > 3) {
+        formattedValue = '0' + formattedValue;
+      }
+      if (formattedValue.length === 2) {
+        const dayNum = parseInt(formattedValue);
+        if (dayNum > 31) {
+          formattedValue = '31';
+        } else if (dayNum < 1) {
+          formattedValue = '01';
+        }
+      }
+      setBirthDay(formattedValue);
+    }
+    
+    // birthDate 필드 업데이트
+    updateBirthDate(field, formattedValue);
+  };
+
+  // 전체 생년월일 업데이트
+  const updateBirthDate = (updatedField: 'year' | 'month' | 'day', newValue: string) => {
+    const year = updatedField === 'year' ? newValue : birthYear;
+    const month = updatedField === 'month' ? newValue : birthMonth;
+    const day = updatedField === 'day' ? newValue : birthDay;
+    
+    if (year.length === 4 && month.length === 2 && day.length === 2) {
+      const birthDate = `${year}-${month}-${day}`;
+      setFormData(prev => ({
+        ...prev,
+        birthDate: birthDate
+      }));
+    }
+  };
+
+  // 키보드 이벤트 핸들러 (백스페이스로 이전 필드 이동)
+  const handleKeyDown = (field: 'year' | 'month' | 'day', e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      const target = e.target as HTMLInputElement;
+      if (target.value === '' || target.selectionStart === 0) {
+        if (field === 'month') {
+          const yearInput = document.getElementById('birthYear');
+          yearInput?.focus();
+        } else if (field === 'day') {
+          const monthInput = document.getElementById('birthMonth');
+          monthInput?.focus();
+        }
+      }
     }
   };
 
@@ -285,22 +378,69 @@ export default function RegisterPage() {
 
             {/* 생년월일 입력 */}
             <div>
-              <label htmlFor="birthDate" className="block text-sm font-medium text-black mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 생년월일 *
               </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
-                <input
-                  id="birthDate"
-                  name="birthDate"
-                  type="date"
-                  required
-                  value={formData.birthDate}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  disabled={loading}
-                />
+              <div className="flex space-x-2">
+                {/* 년도 입력 */}
+                <div className="flex-1">
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black" />
+                    <input
+                      id="birthYear"
+                      type="text"
+                      inputMode="numeric"
+                      value={birthYear}
+                      onChange={(e) => handleBirthDateChange('year', e.target.value)}
+                      onKeyDown={(e) => handleKeyDown('year', e)}
+                      placeholder="YYYY"
+                      maxLength={4}
+                      className="w-full pl-9 pr-3 py-3 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-center"
+                      disabled={loading}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 text-center mt-1">년</p>
+                </div>
+                
+                {/* 월 입력 */}
+                <div className="w-20">
+                  <input
+                    id="birthMonth"
+                    type="text"
+                    inputMode="numeric"
+                    value={birthMonth}
+                    onChange={(e) => handleBirthDateChange('month', e.target.value)}
+                    onKeyDown={(e) => handleKeyDown('month', e)}
+                    placeholder="MM"
+                    maxLength={2}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-center"
+                    disabled={loading}
+                  />
+                  <p className="text-xs text-gray-500 text-center mt-1">월</p>
+                </div>
+                
+                {/* 일 입력 */}
+                <div className="w-20">
+                  <input
+                    id="birthDay"
+                    type="text"
+                    inputMode="numeric"
+                    value={birthDay}
+                    onChange={(e) => handleBirthDateChange('day', e.target.value)}
+                    onKeyDown={(e) => handleKeyDown('day', e)}
+                    placeholder="DD"
+                    maxLength={2}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-center"
+                    disabled={loading}
+                  />
+                  <p className="text-xs text-gray-500 text-center mt-1">일</p>
+                </div>
               </div>
+              {formData.birthDate && (
+                <p className="text-xs text-green-600 mt-1">
+                  입력된 생년월일: {formData.birthDate}
+                </p>
+              )}
             </div>
 
             {/* 이메일 입력 */}
