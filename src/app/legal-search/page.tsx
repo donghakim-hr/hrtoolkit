@@ -118,7 +118,7 @@ export default function LegalSearchPage() {
   }, []);
 
   const searchLegalArticles = () => {
-    if (!searchTerm.trim()) {
+    if (searchTerm.trim().length < 2) {
       setSearchResults([]);
       return;
     }
@@ -183,7 +183,7 @@ export default function LegalSearchPage() {
   };
 
   useEffect(() => {
-    if (searchTerm) {
+    if (searchTerm.trim().length >= 2) {
       const timeoutId = setTimeout(() => {
         searchLegalArticles();
       }, 300);
@@ -263,10 +263,13 @@ export default function LegalSearchPage() {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="조문 내용, 제목, 조항 번호를 검색하세요..."
+                  placeholder="2자 이상 입력하여 조문 내용, 제목, 조항 번호를 검색하세요..."
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
+              {searchTerm.trim().length === 1 && (
+                <p className="text-xs text-orange-500 mt-1">2글자 이상 입력해야 검색됩니다.</p>
+              )}
             </div>
 
             <div className="md:w-64">
@@ -422,7 +425,7 @@ export default function LegalSearchPage() {
                 </div>
               ))}
             </div>
-          ) : searchTerm || allArticlesData ? (
+          ) : searchTerm.trim().length >= 2 || allArticlesData ? (
             <div className="text-center py-12">
               <Search className="h-12 w-12 mx-auto mb-4 text-black" />
               <p className="text-black">검색 결과가 없습니다.</p>
@@ -433,7 +436,7 @@ export default function LegalSearchPage() {
           ) : (
             <div className="text-center py-12">
               <Book className="h-12 w-12 mx-auto mb-4 text-black" />
-              <p className="text-black">검색어를 입력해주세요.</p>
+              <p className="text-black">검색어를 2자 이상 입력해주세요.</p>
               <p className="text-sm text-black mt-2">
                 법령 조문, 제목, 조항 번호를 검색할 수 있습니다.
               </p>

@@ -45,20 +45,24 @@ export default function MinimumWagePage() {
   
   const [result, setResult] = useState<MinimumWageResult | null>(null);
 
-  // 2024년 최저임금 기준
+  // 연도별 최저임금 데이터
   const minimumWageData = {
     2024: {
       hourly: 9860,
-      monthly: 2060740 // 40시간 × 4.345주 × 9860원
+      monthly: 2060740  // 9,860 × 209시간
     },
     2025: {
-      hourly: 10030, // 예시 (실제로는 고시 확인 필요)
-      monthly: 2095198
+      hourly: 10030,
+      monthly: 2096270  // 10,030 × 209시간
+    },
+    2026: {
+      hourly: 10320,
+      monthly: 2156880  // 10,320 × 209시간 (2026.1.1 시행, 최저임금위원회 고시)
     }
   };
 
   const calculateMinimumWage = () => {
-    const currentYear = 2024;
+    const currentYear = 2026;
     const minWage = minimumWageData[currentYear as keyof typeof minimumWageData];
 
     // 입력값 검증
@@ -511,8 +515,12 @@ export default function MinimumWagePage() {
             </div>
             
             <div>
-              <h4 className="font-semibold mb-2">🔍 2024년 최저임금</h4>
-              <p className="ml-4">시간급 9,860원 (전년 대비 2.5% 인상)</p>
+              <h4 className="font-semibold mb-2">🔍 연도별 최저임금</h4>
+              <div className="ml-4 space-y-1">
+                <p>2026년: 시간급 <strong>10,320원</strong> / 월 환산 2,156,880원 (전년 대비 2.9% 인상)</p>
+                <p>2025년: 시간급 10,030원 / 월 환산 2,096,270원</p>
+                <p>2024년: 시간급 9,860원 / 월 환산 2,060,740원</p>
+              </div>
             </div>
           </div>
         </div>
