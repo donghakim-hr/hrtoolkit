@@ -102,70 +102,82 @@ function RetirementTaxContent() {
     const years = parseInt(workingYears);
     const workerAge = age ? parseInt(age) : 0;
 
-    // 1단계: 퇴직소득 공제 계산
+    // 1단계: 퇴직소득공제 계산 (소득세법 제48조)
     let retirementDeduction = 0;
     if (years <= 5) {
-      retirementDeduction = years * 3000000; // 300만원 × 근속연수
+      retirementDeduction = years * 3000000;
     } else if (years <= 10) {
-      retirementDeduction = 15000000 + (years - 5) * 5000000; // 1,500만원 + (근속연수-5) × 500만원
+      retirementDeduction = 15000000 + (years - 5) * 5000000;
     } else if (years <= 20) {
-      retirementDeduction = 40000000 + (years - 10) * 7000000; // 4,000만원 + (근속연수-10) × 700만원
+      retirementDeduction = 40000000 + (years - 10) * 7000000;
     } else {
-      retirementDeduction = 110000000 + (years - 20) * 10000000; // 1억1,000만원 + (근속연수-20) × 1,000만원
+      retirementDeduction = 110000000 + (years - 20) * 10000000;
     }
 
-    // 2단계: 과세표준 계산
+    // 2단계: 과세표준 = 퇴직급여 - 퇴직소득공제
     const taxableIncome = Math.max(0, retirementAmount - retirementDeduction);
 
-    // 3단계: 환산소득 계산 (과세표준 ÷ 근속연수, 소수점 이하 절사)
-    const convertedIncome = Math.floor(taxableIncome / years);
+    // 3단계: 환산급여 = (과세표준 ÷ 근속연수) × 12
+    const convertedIncome = Math.floor((taxableIncome / years) * 12);
 
-    // 4단계: 환산소득에 대한 소득세 계산 (2024년 소득세율 적용)
-    let taxOnConverted = 0;
-    let taxRate = 0;
-
-    if (convertedIncome <= 14000000) {
-      taxRate = 6;
-      taxOnConverted = convertedIncome * 0.06;
-    } else if (convertedIncome <= 50000000) {
-      taxRate = 15;
-      taxOnConverted = 840000 + (convertedIncome - 14000000) * 0.15;
-    } else if (convertedIncome <= 88000000) {
-      taxRate = 24;
-      taxOnConverted = 6240000 + (convertedIncome - 50000000) * 0.24;
-    } else if (convertedIncome <= 150000000) {
-      taxRate = 35;
-      taxOnConverted = 15360000 + (convertedIncome - 88000000) * 0.35;
+    // 4단계: 환산급여공제 계산 (소득세법 시행령 제42조의2)
+    let hwansanDeduction = 0;
+    if (convertedIncome <= 8000000) {
+      hwansanDeduction = convertedIncome; // 전액공제
+    } else if (convertedIncome <= 70000000) {
+      hwansanDeduction = 8000000 + Math.floor((convertedIncome - 8000000) * 0.6);
+    } else if (convertedIncome <= 100000000) {
+      hwansanDeduction = 45200000 + Math.floor((convertedIncome - 70000000) * 0.55);
     } else if (convertedIncome <= 300000000) {
-      taxRate = 38;
-      taxOnConverted = 37060000 + (convertedIncome - 150000000) * 0.38;
-    } else if (convertedIncome <= 500000000) {
-      taxRate = 40;
-      taxOnConverted = 94060000 + (convertedIncome - 300000000) * 0.40;
-    } else if (convertedIncome <= 1000000000) {
-      taxRate = 42;
-      taxOnConverted = 174060000 + (convertedIncome - 500000000) * 0.42;
+      hwansanDeduction = 61700000 + Math.floor((convertedIncome - 100000000) * 0.45);
     } else {
-      taxRate = 45;
-      taxOnConverted = 384060000 + (convertedIncome - 1000000000) * 0.45;
+      hwansanDeduction = 151700000 + Math.floor((convertedIncome - 300000000) * 0.35);
     }
 
-    // 5단계: 산출세액 계산
-    const calculatedTax = taxOnConverted * years;
+    // 5단계: 환산과세표준 = 환산급여 - 환산급여공제
+    const hwansanTaxableIncome = Math.max(0, convertedIncome - hwansanDeduction);
 
-    // 6단계: 퇴직소득세 계산 (산출세액에서 20% 감면)
-    const retirementTax = Math.floor(calculatedTax * 0.8);
+    // 6단계: 환산산출세액 = 환산과세표준에 누진세율 적용 (2026년 기준)
+    let hwansanCalculatedTax = 0;
+    let taxRate = 0;
+    if (hwansanTaxableIncome <= 14000000) {
+      taxRate = 6;
+      hwansanCalculatedTax = Math.floor(hwansanTaxableIncome * 0.06);
+    } else if (hwansanTaxableIncome <= 50000000) {
+      taxRate = 15;
+      hwansanCalculatedTax = Math.floor(840000 + (hwansanTaxableIncome - 14000000) * 0.15);
+    } else if (hwansanTaxableIncome <= 88000000) {
+      taxRate = 24;
+      hwansanCalculatedTax = Math.floor(6240000 + (hwansanTaxableIncome - 50000000) * 0.24);
+    } else if (hwansanTaxableIncome <= 150000000) {
+      taxRate = 35;
+      hwansanCalculatedTax = Math.floor(15360000 + (hwansanTaxableIncome - 88000000) * 0.35);
+    } else if (hwansanTaxableIncome <= 300000000) {
+      taxRate = 38;
+      hwansanCalculatedTax = Math.floor(37060000 + (hwansanTaxableIncome - 150000000) * 0.38);
+    } else if (hwansanTaxableIncome <= 500000000) {
+      taxRate = 40;
+      hwansanCalculatedTax = Math.floor(94060000 + (hwansanTaxableIncome - 300000000) * 0.40);
+    } else if (hwansanTaxableIncome <= 1000000000) {
+      taxRate = 42;
+      hwansanCalculatedTax = Math.floor(174060000 + (hwansanTaxableIncome - 500000000) * 0.42);
+    } else {
+      taxRate = 45;
+      hwansanCalculatedTax = Math.floor(384060000 + (hwansanTaxableIncome - 1000000000) * 0.45);
+    }
 
-    // 7단계: 지방소득세 계산 (퇴직소득세의 10%)
+    // 7단계: 산출세액 = (환산산출세액 ÷ 12) × 근속연수
+    const calculatedTax = Math.floor((hwansanCalculatedTax / 12) * years);
+
+    // 8단계: 퇴직소득세 = 산출세액 (2023년 개정 이후 20% 감면 폐지)
+    const retirementTax = calculatedTax;
+
+    // 9단계: 지방소득세 = 퇴직소득세 × 10%
     const localTax = Math.floor(retirementTax * 0.1);
 
-    // 총 세액
+    // 총 세액 및 실수령액
     const totalTax = retirementTax + localTax;
-
-    // 실수령액
     const netAmount = retirementAmount - totalTax;
-
-    // 실효세율
     const effectiveRate = (totalTax / retirementAmount) * 100;
 
     setResult({
@@ -175,8 +187,11 @@ function RetirementTaxContent() {
       retirementDeduction,
       taxableIncome,
       convertedIncome,
+      hwansanDeduction,
+      hwansanTaxableIncome,
+      hwansanCalculatedTax,
       taxRate,
-      calculatedTax: Math.floor(calculatedTax),
+      calculatedTax,
       retirementTax,
       localTax,
       totalTax,
@@ -318,37 +333,53 @@ function RetirementTaxContent() {
                   </p>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-black">퇴직급여</span>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">① 퇴직급여</span>
                     <span className="font-medium">{result.retirementAmount.toLocaleString()}원</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-black">퇴직소득공제</span>
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">② 퇴직소득공제 (근속연수공제)</span>
                     <span className="font-medium text-green-600">-{result.retirementDeduction.toLocaleString()}원</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-black">과세표준</span>
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">③ 과세표준 (①-②)</span>
                     <span className="font-medium">{result.taxableIncome.toLocaleString()}원</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-black">환산소득</span>
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">④ 환산급여 (③÷{result.workingYears}년×12)</span>
                     <span className="font-medium">{result.convertedIncome.toLocaleString()}원</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-black">적용세율</span>
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">⑤ 환산급여공제</span>
+                    <span className="font-medium text-green-600">-{result.hwansanDeduction.toLocaleString()}원</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">⑥ 환산과세표준 (④-⑤)</span>
+                    <span className="font-medium">{result.hwansanTaxableIncome.toLocaleString()}원</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">⑦ 적용세율</span>
                     <span className="font-medium">{result.taxRate}%</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-black">퇴직소득세</span>
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">⑧ 환산산출세액</span>
+                    <span className="font-medium">{result.hwansanCalculatedTax.toLocaleString()}원</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">⑨ 산출세액 (⑧÷12×{result.workingYears}년)</span>
+                    <span className="font-medium">{result.calculatedTax.toLocaleString()}원</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">⑩ 퇴직소득세</span>
                     <span className="font-medium text-red-600">{result.retirementTax.toLocaleString()}원</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-black">지방소득세</span>
+                  <div className="flex justify-between py-1.5 border-b border-gray-100">
+                    <span className="text-gray-600">⑪ 지방소득세 (⑩×10%)</span>
                     <span className="font-medium text-red-600">{result.localTax.toLocaleString()}원</span>
                   </div>
-                  <div className="flex justify-between py-2 bg-gray-50 rounded px-3">
-                    <span className="font-medium text-black">총 세액</span>
+                  <div className="flex justify-between py-2 bg-gray-50 rounded px-3 mt-1">
+                    <span className="font-semibold text-black">총 세액 (⑩+⑪)</span>
                     <span className="font-bold text-red-600">{result.totalTax.toLocaleString()}원</span>
                   </div>
                 </div>
@@ -493,7 +524,7 @@ function RetirementTaxContent() {
           </h3>
           <div className="bg-gray-50 rounded-lg p-4 text-sm text-black space-y-4">
             <div>
-              <p className="font-medium mb-2">소득세법 제48조 (퇴직소득공제)</p>
+              <p className="font-medium mb-2">① 퇴직소득공제 (소득세법 제48조)</p>
               <ul className="space-y-1 ml-4 text-xs">
                 <li>• 5년 이하: 근속연수 × 300만원</li>
                 <li>• 6~10년: 1,500만원 + (근속연수-5) × 500만원</li>
@@ -503,22 +534,35 @@ function RetirementTaxContent() {
             </div>
 
             <div>
-              <p className="font-medium mb-2">퇴직소득세 계산 단계</p>
+              <p className="font-medium mb-2">② 환산급여공제 (소득세법 시행령 제42조의2)</p>
+              <ul className="space-y-1 ml-4 text-xs">
+                <li>• 환산급여 800만원 이하: 전액공제</li>
+                <li>• 800만원 초과 ~ 7,000만원: 800만원 + 초과액 × 60%</li>
+                <li>• 7,000만원 초과 ~ 1억원: 4,520만원 + 초과액 × 55%</li>
+                <li>• 1억원 초과 ~ 3억원: 6,170만원 + 초과액 × 45%</li>
+                <li>• 3억원 초과: 15,170만원 + 초과액 × 35%</li>
+              </ul>
+            </div>
+
+            <div>
+              <p className="font-medium mb-2">③ 퇴직소득세 계산 단계 (2023년 개정 현행)</p>
               <ol className="space-y-1 ml-4 text-xs">
                 <li>1. 과세표준 = 퇴직급여 - 퇴직소득공제</li>
-                <li>2. 환산소득 = 과세표준 ÷ 근속연수 (소수점 이하 절사)</li>
-                <li>3. 환산소득에 누진세율 적용</li>
-                <li>4. 산출세액 = 환산소득세액 × 근속연수</li>
-                <li>5. 퇴직소득세 = 산출세액 × 80% (20% 감면)</li>
-                <li>6. 지방소득세 = 퇴직소득세 × 10%</li>
+                <li>2. 환산급여 = (과세표준 ÷ 근속연수) × 12</li>
+                <li>3. 환산급여공제 계산</li>
+                <li>4. 환산과세표준 = 환산급여 - 환산급여공제</li>
+                <li>5. 환산산출세액 = 환산과세표준에 누진세율 적용</li>
+                <li>6. 산출세액 = (환산산출세액 ÷ 12) × 근속연수</li>
+                <li>7. 퇴직소득세 = 산출세액 (20% 감면 폐지, 2023년 이후)</li>
+                <li>8. 지방소득세 = 퇴직소득세 × 10%</li>
               </ol>
             </div>
 
-            <p className="text-xs text-black mt-3">
-              ※ 2024년 세율 기준 / 시행일: 2024.1.1 (소득세법 시행령 개정)
+            <p className="text-xs text-gray-500 mt-3">
+              ※ 2026년 세율 기준 / 2023.1.1 소득세법 개정으로 환산급여공제 방식 적용 (20% 감면 폐지)
             </p>
             <p className="text-xs text-red-600">
-              ⚠️ 본 계산은 일반적인 경우를 기준으로 하며, 개인별 특수상황은 반영되지 않습니다.
+              ⚠️ 본 계산은 일반적인 경우를 기준으로 하며, 개인별 특수상황은 반영되지 않습니다. 정확한 세액은 세무사 상담을 권장합니다.
             </p>
           </div>
         </div>

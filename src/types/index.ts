@@ -65,7 +65,10 @@ export interface RetirementTaxResult {
   age: number;
   retirementDeduction: number;
   taxableIncome: number;
-  convertedIncome: number;
+  convertedIncome: number;   // 환산급여 (과세표준 / 근속연수 × 12)
+  hwansanDeduction: number;  // 환산급여공제
+  hwansanTaxableIncome: number; // 환산과세표준 (환산급여 - 환산급여공제)
+  hwansanCalculatedTax: number; // 환산산출세액
   taxRate: number;
   calculatedTax: number;
   retirementTax: number;

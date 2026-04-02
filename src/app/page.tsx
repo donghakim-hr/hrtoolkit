@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   Calculator, FileText, DollarSign, Search, HelpCircle, Briefcase,
   Bell, X, User, LogIn, LogOut, MessageSquare, Mail, TrendingUp,
-  BookMarked, ArrowRight, Users, ChevronDown, Sparkles, BookOpen, CheckCircle
+  BookMarked, ArrowRight, Users, ChevronDown, Sparkles, BookOpen, CheckCircle, Wallet
 } from "lucide-react";
 import articlesData from "@/data/articles.json";
 import { useState, useEffect } from "react";
@@ -52,6 +52,14 @@ const features = [
     href: "/retirement-tax",
     category: "계산기",
     accent: "from-indigo-500 to-indigo-600",
+  },
+  {
+    icon: Wallet,
+    title: "연봉 실수령액 계산기",
+    description: "연봉 입력 하나로 4대보험·근로소득세·실수령액을 월별/연간으로 확인합니다",
+    href: "/salary",
+    category: "계산기",
+    accent: "from-amber-500 to-orange-500",
   },
   {
     icon: TrendingUp,
@@ -280,12 +288,18 @@ export default function Home() {
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <button
-              onClick={() => setActiveCategory("계산기")}
+              onClick={() => {
+                setActiveCategory("계산기");
+                document.getElementById("tools-section")?.scrollIntoView({ behavior: "smooth" });
+              }}
               className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
             >
               <Calculator className="h-4 w-4" />계산기 바로 사용
               <ArrowRight className="h-4 w-4" />
             </button>
+            <Link href="/legal-search" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-6 py-3 rounded-xl transition-colors backdrop-blur-sm">
+              <Search className="h-4 w-4" />법령 검색
+            </Link>
             <Link href="/articles" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-6 py-3 rounded-xl transition-colors backdrop-blur-sm">
               <BookOpen className="h-4 w-4" />실무 아티클 읽기
             </Link>
@@ -369,7 +383,7 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
         {/* Section header + Category tabs */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div id="tools-section" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">도구 모아보기</h2>
             <p className="text-sm text-gray-500 mt-0.5">카테고리별로 빠르게 찾아보세요</p>

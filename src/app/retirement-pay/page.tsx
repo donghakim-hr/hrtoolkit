@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, DollarSign, Calendar, Info, AlertTriangle, Calculator, Download, FileText, FileSpreadsheet, Save, Check, Plus, Minus, ChevronDown, ChevronUp } from "lucide-react";
@@ -30,6 +30,7 @@ interface AveragePayResult {
   month1: MonthlyPayData;
   month2: MonthlyPayData;
   month3: MonthlyPayData;
+  month4?: MonthlyPayData;
   retirementDate: string;
   totalWorkingDays: number;
   totalSalary: number;
@@ -50,12 +51,34 @@ export default function RetirementPayPage() {
   const router = useRouter();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  // 날짜 분리 입력 상태 (년/월/일)
+  const [startY, setStartY] = useState("");
+  const [startM, setStartM] = useState("");
+  const [startD, setStartD] = useState("");
+  const [endY, setEndY] = useState("");
+  const [endM, setEndM] = useState("");
+  const [endD, setEndD] = useState("");
+
+  // 날짜 필드 ref (자동 이동용)
+  const startMRef = useRef<HTMLInputElement>(null);
+  const startDRef = useRef<HTMLInputElement>(null);
+  const endYRef   = useRef<HTMLInputElement>(null);
+  const endMRef   = useRef<HTMLInputElement>(null);
+  const endDRef   = useRef<HTMLInputElement>(null);
+
+  // 평균임금 계산기 퇴사일 분리 입력 상태
+  const [retireY, setRetireY] = useState("");
+  const [retireM, setRetireM] = useState("");
+  const [retireD, setRetireD] = useState("");
+  const retireMRef = useRef<HTMLInputElement>(null);
+  const retireDRef = useRef<HTMLInputElement>(null);
   const [averagePay, setAveragePay] = useState("");
   const [retirementSystem, setRetirementSystem] = useState<"DB" | "DC" | "hybrid">("DB"); // DB형(확정급여형), DC형(확정기여형), 혼합형
 
   // DC형 관련 상태
-  const [monthlyContribution, setMonthlyContribution] = useState("");
-  const [annualReturn, setAnnualReturn] = useState("");
+  const [annualSalaryForDC, setAnnualSalaryForDC] = useState(""); // 직전 1년 총급여액
+  const [monthlyContribution, setMonthlyContribution] = useState(""); // 혼합형 DC 부분용
 
   // 혼합형 관련 상태
   const [dbRatio, setDbRatio] = useState("50");
@@ -103,8 +126,23 @@ export default function RetirementPayPage() {
     totalAllowances: "0",
     monthlyTotal: "0"
   });
+  const [month4Data, setMonth4Data] = useState<MonthlyPayData>({
+    month: 4,
+    monthName: "",
+    startDate: "",
+    endDate: "",
+    workingDays: "",
+    baseSalary: "",
+    allowances: [""],
+    totalAllowances: "0",
+    monthlyTotal: "0"
+  });
   const [fixedBonus, setFixedBonus] = useState("");
   const [annualLeaveAllowance, setAnnualLeaveAllowance] = useState("");
+
+  // 기본급/수당 일괄 입력용 기본값
+  const [defaultBaseSalary, setDefaultBaseSalary] = useState("");
+  const [defaultAllowances, setDefaultAllowances] = useState<string[]>([""]);
   const [averagePayResult, setAveragePayResult] = useState<AveragePayResult | null>(null);
   
   // 평균임금 계산기 접기/펼치기 상태
@@ -161,10 +199,64 @@ export default function RetirementPayPage() {
     }
   };
 
+  // 년/월/일 → YYYY-MM-DD 조합 및 state 업데이트
+  const buildDate = (y: string, m: string, d: string) => {
+    if (y.length === 4 && m.length >= 1 && d.length >= 1) {
+      const mm = m.padStart(2, "0");
+      const dd = d.padStart(2, "0");
+      return `${y}-${mm}-${dd}`;
+    }
+    return "";
+  };
+
+  const handleStartY = (v: string) => {
+    const val = v.replace(/\D/g, "").slice(0, 4);
+    setStartY(val);
+    const combined = buildDate(val, startM, startD);
+    setStartDate(combined);
+    if (val.length === 4) startMRef.current?.focus();
+  };
+  const handleStartM = (v: string) => {
+    const val = v.replace(/\D/g, "").slice(0, 2);
+    setStartM(val);
+    const combined = buildDate(startY, val, startD);
+    setStartDate(combined);
+    if (val.length === 2) startDRef.current?.focus();
+  };
+  const handleStartD = (v: string) => {
+    const val = v.replace(/\D/g, "").slice(0, 2);
+    setStartD(val);
+    const combined = buildDate(startY, startM, val);
+    setStartDate(combined);
+    if (val.length === 2) endYRef.current?.focus();
+  };
+  const handleEndY = (v: string) => {
+    const val = v.replace(/\D/g, "").slice(0, 4);
+    setEndY(val);
+    const combined = buildDate(val, endM, endD);
+    setEndDate(combined);
+    if (val.length === 4) endMRef.current?.focus();
+  };
+  const handleEndM = (v: string) => {
+    const val = v.replace(/\D/g, "").slice(0, 2);
+    setEndM(val);
+    const combined = buildDate(endY, val, endD);
+    setEndDate(combined);
+    if (val.length === 2) endDRef.current?.focus();
+  };
+  const handleEndD = (v: string) => {
+    const val = v.replace(/\D/g, "").slice(0, 2);
+    setEndD(val);
+    const combined = buildDate(endY, endM, val);
+    setEndDate(combined);
+  };
+
   const calculateRetirementPay = () => {
     // 공통 필드 검증
     if (!startDate || !endDate) {
-      alert("입사일과 퇴사일을 입력해주세요.");
+      alert(retirementSystem === "DC"
+        ? "기산일과 계산 종료일을 모두 입력해주세요."
+        : "입사일과 퇴사일을 입력해주세요.");
       return;
     }
 
@@ -175,8 +267,8 @@ export default function RetirementPayPage() {
         return;
       }
     } else if (retirementSystem === "DC") {
-      if (!monthlyContribution || !annualReturn) {
-        alert("월 기여금과 운용수익률을 입력해주세요.");
+      if (!annualSalaryForDC) {
+        alert("직전 1년 총급여액을 입력해주세요.");
         return;
       }
     } else if (retirementSystem === "hybrid") {
@@ -196,8 +288,8 @@ export default function RetirementPayPage() {
 
     // 근속기간 계산 (일수)
     const workingDays = Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
-    const workingYears = Math.floor(workingDays / 365.25);
-    const workingMonths = Math.floor(workingDays / 30.4375);
+    const workingYears = Math.floor(workingDays / 365);
+    const workingMonths = Math.floor(workingDays / 30);
 
     // 퇴직급여 계산
     let retirementPay = 0;
@@ -212,39 +304,31 @@ export default function RetirementPayPage() {
       systemType = "DB형 (확정급여형)";
 
       if (workingDays >= 365) {
-        // 1년 이상 근속: 평균임금 × 근속연수
+        // 1년 이상 근속: 평균임금(일) × 30 × (재직일수 / 365)
         retirementPay = avgPay * 30 * (workingDays / 365);
         calculationMethod = `${avgPay.toLocaleString()}원(일급) × 30일 × (${workingDays}일 ÷ 365) = ${Math.round(retirementPay).toLocaleString()}원`;
       } else {
-        // 1년 미만 근속
-        retirementPay = avgPay * workingDays;
-        calculationMethod = `${avgPay.toLocaleString()}원(일급) × ${workingDays}일 = ${Math.round(retirementPay).toLocaleString()}원`;
+        // 1년 미만: 퇴직급여 지급 의무 없음
+        retirementPay = 0;
+        calculationMethod = `계속근로기간 ${workingDays}일 (1년 미만) — 퇴직급여 지급 의무 없음 (근로자퇴직급여 보장법 제4조)`;
       }
 
     } else if (retirementSystem === "DC") {
-      // DC형 (확정기여형) 계산
-      const monthlyContrib = parseInt(monthlyContribution.replace(/,/g, ""));
-      const annualReturnRate = parseFloat(annualReturn) / 100;
+      // DC형 (확정기여형) 계산 — 근로자퇴직급여보장법 제20조
+      const annualSalary = parseInt(annualSalaryForDC.replace(/,/g, ""));
+      const annualContribution = Math.round(annualSalary / 12); // 연 부담금 = 직전 1년 총급여액 / 12
 
       systemType = "DC형 (확정기여형)";
 
-      // 원금 = 월 기여금 × 근속월수
-      const principal = monthlyContrib * workingMonths;
+      const fullYears = Math.floor(workingDays / 365);
+      const remainingDays = workingDays % 365;
+      const partialContribution = Math.round(annualContribution * (remainingDays / 365));
 
-      // 복리 계산: FV = PMT × [((1 + r)^n - 1) / r]
-      // 여기서 r = 월 수익률, n = 근속월수
-      const monthlyReturnRate = annualReturnRate / 12;
-      let accumulatedAmount = 0;
-
-      if (monthlyReturnRate > 0) {
-        accumulatedAmount = monthlyContrib * (Math.pow(1 + monthlyReturnRate, workingMonths) - 1) / monthlyReturnRate;
-      } else {
-        // 수익률이 0%인 경우
-        accumulatedAmount = principal;
-      }
+      // 원금 기준 단순 적립 (수익률 미반영)
+      const accumulatedAmount = annualContribution * fullYears + partialContribution;
 
       retirementPay = Math.round(accumulatedAmount);
-      calculationMethod = `월 기여금 ${monthlyContrib.toLocaleString()}원 × ${workingMonths}개월, 연 수익률 ${annualReturn}% = ${retirementPay.toLocaleString()}원`;
+      calculationMethod = `연 부담금 ${annualContribution.toLocaleString()}원 (직전 1년 총급여액 ${annualSalary.toLocaleString()}원 ÷ 12) × ${fullYears}년${remainingDays > 0 ? ` + 잔여 ${remainingDays}일 분 ${partialContribution.toLocaleString()}원` : ""}`;
 
     } else if (retirementSystem === "hybrid") {
       // 혼합형 계산
@@ -271,14 +355,6 @@ export default function RetirementPayPage() {
       calculationMethod = `DB형(${(dbRatioNum * 100).toFixed(0)}%): ${Math.round(dbPortion).toLocaleString()}원 + DC형(${(dcRatioNum * 100).toFixed(0)}%): ${Math.round(dcPortion).toLocaleString()}원`;
     }
 
-    // 계속근로가산금 계산 (DB형에만 적용)
-    let continuousServiceBonus = 0;
-    if (retirementSystem === "DB" && workingYears >= 5) {
-      const monthlyPay = parseInt(averagePay.replace(/,/g, ""));
-      const avgPay = Math.round(monthlyPay / 30);
-      continuousServiceBonus = avgPay * 30 * Math.floor(workingYears / 5);
-    }
-
     setResult({
       startDate: start.toLocaleDateString('ko-KR'),
       endDate: end.toLocaleDateString('ko-KR'),
@@ -288,8 +364,8 @@ export default function RetirementPayPage() {
       averagePay: retirementSystem === "DB" ? Math.round(parseInt(averagePay.replace(/,/g, "")) / 30) : 0,
       monthlyPay: retirementSystem === "DB" ? parseInt(averagePay.replace(/,/g, "")) : 0,
       retirementPay: Math.round(retirementPay),
-      continuousServiceBonus,
-      totalAmount: Math.round(retirementPay + continuousServiceBonus),
+      continuousServiceBonus: 0,
+      totalAmount: Math.round(retirementPay),
       calculationMethod,
       retirementType: systemType,
       systemType: systemType
@@ -301,53 +377,168 @@ export default function RetirementPayPage() {
     return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-  // 퇴직일자 기준 3개월 기간 자동 계산
+  // 기본급/수당 일괄 적용: 각 월의 기간에 비례해 금액 계산 후 자동 입력
+  const applyDefaultSalary = () => {
+    const baseNum = parseInt(defaultBaseSalary.replace(/,/g, "")) || 0;
+    if (baseNum === 0) {
+      alert("기본급을 입력해주세요.");
+      return;
+    }
+
+    // 날짜 범위의 역일수(calendar days) 계산
+    const periodDays = (startStr: string, endStr: string) => {
+      if (!startStr || !endStr) return 0;
+      const s = new Date(startStr);
+      const e = new Date(endStr);
+      return Math.round((e.getTime() - s.getTime()) / 86400000) + 1;
+    };
+    // 해당 달의 총 일수
+    const daysInMonth = (dateStr: string) => {
+      if (!dateStr) return 30;
+      const d = new Date(dateStr);
+      return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    };
+    // 금액 일할 계산
+    const prorate = (amount: number, days: number, totalDays: number) =>
+      totalDays === 0 ? amount : Math.round((amount * days) / totalDays);
+
+    const applyToMonth = (
+      data: MonthlyPayData,
+      setter: (d: MonthlyPayData) => void
+    ) => {
+      if (!data.startDate || !data.endDate) return;
+      const days = periodDays(data.startDate, data.endDate);
+      const total = daysInMonth(data.startDate);
+      const isFullMonth = days === total;
+
+      const newBase = isFullMonth ? baseNum : prorate(baseNum, days, total);
+      const newAllowances = defaultAllowances.map((a) => {
+        const num = parseInt(a.replace(/,/g, "")) || 0;
+        return isFullMonth ? num : prorate(num, days, total);
+      });
+
+      const totalAllowances = newAllowances.reduce((s, v) => s + v, 0);
+      const newData: MonthlyPayData = {
+        ...data,
+        workingDays: String(days),
+        baseSalary: newBase.toLocaleString(),
+        allowances: newAllowances.map((v) => v.toLocaleString()),
+        totalAllowances: totalAllowances.toLocaleString(),
+        monthlyTotal: (newBase + totalAllowances).toLocaleString(),
+      };
+      setter(newData);
+    };
+
+    applyToMonth(month4Data, setMonth4Data);
+    applyToMonth(month3Data, setMonth3Data);
+    applyToMonth(month2Data, setMonth2Data);
+    applyToMonth(month1Data, setMonth1Data);
+  };
+
+  // 퇴직일자 기준 만 3개월 기간 자동 계산
+  // 예) 9월 15일 퇴직 → 만 3개월 시작: 6월 16일
+  //   4개월차: 6/16~6/30 / 3개월차: 7/1~7/31 / 2개월차: 8/1~8/31 / 1개월차: 9/1~9/15
   const calculateThreeMonthPeriod = (retirementDateStr: string) => {
     if (!retirementDateStr) return;
 
     const retirementDate = new Date(retirementDateStr);
-    const periodEnd = new Date(retirementDate);
-    periodEnd.setDate(periodEnd.getDate() - 1); // 퇴직일 전날까지
-    
-    const periodStart = new Date(periodEnd);
-    periodStart.setMonth(periodStart.getMonth() - 3);
-    periodStart.setDate(periodStart.getDate() + 1); // 3개월 전 다음날부터
+    const y = retirementDate.getFullYear();
+    const mo = retirementDate.getMonth(); // 0-indexed
+    const day = retirementDate.getDate();
 
-    // 각 월의 기간 계산
-    const month3Start = new Date(periodStart);
-    const month3End = new Date(month3Start.getFullYear(), month3Start.getMonth() + 1, 0); // 해당 월 마지막 날
-    
-    const month2Start = new Date(month3End);
-    month2Start.setDate(month2Start.getDate() + 1);
-    const month2End = new Date(month2Start.getFullYear(), month2Start.getMonth() + 1, 0);
-    
-    const month1Start = new Date(month2End);
-    month1Start.setDate(month1Start.getDate() + 1);
-    const month1End = new Date(periodEnd);
+    const toISO = (d: Date) => {
+      const yy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yy}-${mm}-${dd}`;
+    };
+    const lastDayOf = (year: number, month: number) => new Date(year, month + 1, 0);
+    const monthLabel = (d: Date) => `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
 
-    // 월별 데이터 업데이트
+    // 퇴직일이 해당 월의 말일인지 확인
+    const lastDayOfRetireMonth = lastDayOf(y, mo).getDate();
+    const isEndOfMonth = day === lastDayOfRetireMonth;
+
+    // 1개월차: 퇴직 당월 1일 ~ 퇴직일
+    const month1Start = new Date(y, mo, 1);
+    const month1End = new Date(retirementDate);
+
+    // 2개월차: 전월 1일 ~ 전월 말일
+    const month2Start = new Date(y, mo - 1, 1);
+    const month2End = lastDayOf(y, mo - 1);
+
+    // 3개월차: 전전월 1일 ~ 전전월 말일
+    const month3Start = new Date(y, mo - 2, 1);
+    const month3End = lastDayOf(y, mo - 2);
+
+    // 4개월차: 말일 퇴사면 없음 / 중간 퇴사면 만 3개월 시작일 ~ 전전월 전달 말일
+    const threeMonthsBack = new Date(y, mo - 3, day);
+    const periodStart = new Date(threeMonthsBack.getTime() + 24 * 60 * 60 * 1000);
+    const hasMonth4 = !isEndOfMonth && periodStart.getDate() !== 1;
+    const month4Start = new Date(periodStart);
+    const month4End = lastDayOf(periodStart.getFullYear(), periodStart.getMonth());
+
+    // month4 업데이트
+    if (hasMonth4) {
+      setMonth4Data(prev => ({
+        ...prev,
+        monthName: monthLabel(month4Start),
+        startDate: toISO(month4Start),
+        endDate: toISO(month4End),
+        workingDays: "",
+        baseSalary: "",
+        allowances: [""],
+        totalAllowances: "0",
+        monthlyTotal: "0",
+      }));
+    } else {
+      setMonth4Data(prev => ({
+        ...prev,
+        monthName: "",
+        startDate: "",
+        endDate: "",
+        workingDays: "",
+        baseSalary: "",
+        allowances: [""],
+        totalAllowances: "0",
+        monthlyTotal: "0",
+      }));
+    }
+
     setMonth3Data(prev => ({
       ...prev,
-      monthName: `${month3Start.getFullYear()}년 ${month3Start.getMonth() + 1}월`,
-      startDate: month3Start.toLocaleDateString('ko-KR'),
-      endDate: month3End.toLocaleDateString('ko-KR'),
-      workingDays: "" // 사용자가 입력할 수 있도록 빈 값으로 설정
+      monthName: monthLabel(month3Start),
+      startDate: toISO(month3Start),
+      endDate: toISO(month3End),
+      workingDays: "",
+      baseSalary: "",
+      allowances: [""],
+      totalAllowances: "0",
+      monthlyTotal: "0",
     }));
 
     setMonth2Data(prev => ({
       ...prev,
-      monthName: `${month2Start.getFullYear()}년 ${month2Start.getMonth() + 1}월`,
-      startDate: month2Start.toLocaleDateString('ko-KR'),
-      endDate: month2End.toLocaleDateString('ko-KR'),
-      workingDays: ""
+      monthName: monthLabel(month2Start),
+      startDate: toISO(month2Start),
+      endDate: toISO(month2End),
+      workingDays: "",
+      baseSalary: "",
+      allowances: [""],
+      totalAllowances: "0",
+      monthlyTotal: "0",
     }));
 
     setMonth1Data(prev => ({
       ...prev,
-      monthName: `${month1Start.getFullYear()}년 ${month1Start.getMonth() + 1}월`,
-      startDate: month1Start.toLocaleDateString('ko-KR'),
-      endDate: month1End.toLocaleDateString('ko-KR'),
-      workingDays: ""
+      monthName: monthLabel(month1Start),
+      startDate: toISO(month1Start),
+      endDate: toISO(month1End),
+      workingDays: "",
+      baseSalary: "",
+      allowances: [""],
+      totalAllowances: "0",
+      monthlyTotal: "0",
     }));
   };
 
@@ -355,6 +546,28 @@ export default function RetirementPayPage() {
   const handleRetirementDateChange = (dateString: string) => {
     setRetirementDate(dateString);
     calculateThreeMonthPeriod(dateString);
+  };
+
+  // 평균임금 계산기 퇴사일 분리 입력 핸들러
+  const handleRetireY = (v: string) => {
+    const val = v.replace(/\D/g, "").slice(0, 4);
+    setRetireY(val);
+    const combined = buildDate(val, retireM, retireD);
+    if (combined) handleRetirementDateChange(combined);
+    if (val.length === 4) retireMRef.current?.focus();
+  };
+  const handleRetireM = (v: string) => {
+    const val = v.replace(/\D/g, "").slice(0, 2);
+    setRetireM(val);
+    const combined = buildDate(retireY, val, retireD);
+    if (combined) handleRetirementDateChange(combined);
+    if (val.length === 2) retireDRef.current?.focus();
+  };
+  const handleRetireD = (v: string) => {
+    const val = v.replace(/\D/g, "").slice(0, 2);
+    setRetireD(val);
+    const combined = buildDate(retireY, retireM, val);
+    if (combined) handleRetirementDateChange(combined);
   };
 
   // 평균임금 계산 함수들
@@ -367,6 +580,13 @@ export default function RetirementPayPage() {
       newData.allowances[index] = formatNumber(value);
     } else if (field === 'workingDays') {
       newData.workingDays = value;
+    } else if (field === 'startDate') {
+      newData.startDate = value;
+      const parts = value.split('-');
+      if (parts.length === 3 && parts[0].length === 4)
+        newData.monthName = `${parts[0]}년 ${parseInt(parts[1])}월`;
+    } else if (field === 'endDate') {
+      newData.endDate = value;
     }
 
     // 수당 총합 계산
@@ -407,9 +627,15 @@ export default function RetirementPayPage() {
   };
 
   const calculateAveragePay = () => {
+    const hasMonth4 = !!month4Data.startDate;
+
     // 입력 검증
     if (!retirementDate || !month1Data.baseSalary || !month2Data.baseSalary || !month3Data.baseSalary) {
-      alert("퇴사일과 3개월 급여 정보를 모두 입력해주세요.");
+      alert("퇴사일과 급여 정보를 모두 입력해주세요.");
+      return;
+    }
+    if (hasMonth4 && !month4Data.baseSalary) {
+      alert("모든 기간의 급여 정보를 입력해주세요.");
       return;
     }
 
@@ -417,18 +643,24 @@ export default function RetirementPayPage() {
       alert("각 월의 이수일수를 입력해주세요.");
       return;
     }
+    if (hasMonth4 && !month4Data.workingDays) {
+      alert("모든 기간의 이수일수를 입력해주세요.");
+      return;
+    }
 
-    // 3개월 총 급여 계산
+    // 총 급여 계산 (month4 포함)
     const month1Total = parseInt(month1Data.monthlyTotal.replace(/,/g, '')) || 0;
     const month2Total = parseInt(month2Data.monthlyTotal.replace(/,/g, '')) || 0;
     const month3Total = parseInt(month3Data.monthlyTotal.replace(/,/g, '')) || 0;
-    const totalSalary = month1Total + month2Total + month3Total;
+    const month4Total = hasMonth4 ? (parseInt(month4Data.monthlyTotal.replace(/,/g, '')) || 0) : 0;
+    const totalSalary = month1Total + month2Total + month3Total + month4Total;
 
-    // 3개월 총 이수일수 (실제 근무일수)
+    // 총 이수일수 (month4 포함)
     const month1Days = parseInt(month1Data.workingDays) || 0;
     const month2Days = parseInt(month2Data.workingDays) || 0;
     const month3Days = parseInt(month3Data.workingDays) || 0;
-    const totalWorkingDays = month1Days + month2Days + month3Days;
+    const month4Days = hasMonth4 ? (parseInt(month4Data.workingDays) || 0) : 0;
+    const totalWorkingDays = month1Days + month2Days + month3Days + month4Days;
 
     if (totalWorkingDays === 0) {
       alert("총 이수일수가 0일입니다. 이수일수를 확인해주세요.");
@@ -467,6 +699,7 @@ export default function RetirementPayPage() {
       month1: month1Data,
       month2: month2Data,
       month3: month3Data,
+      ...(month4Data.startDate ? { month4: month4Data } : {}),
       retirementDate,
       totalWorkingDays,
       totalSalary,
@@ -583,29 +816,58 @@ export default function RetirementPayPage() {
                 </div>
               </div>
 
-              {/* 공통 필드 - 입사일과 퇴사일 */}
+              {/* 공통 필드 - 입사일/기산일 */}
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  입사일
+                  {retirementSystem === "DC" ? "기산일 (DC 계산 시작일)" : "입사일"}
                 </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
-                />
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text" inputMode="numeric" placeholder="YYYY"
+                    value={startY} onChange={(e) => handleStartY(e.target.value)}
+                    className="w-16 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500 focus:border-transparent text-black text-sm"
+                  />
+                  <span className="text-gray-400 text-sm">년</span>
+                  <input
+                    ref={startMRef} type="text" inputMode="numeric" placeholder="MM"
+                    value={startM} onChange={(e) => handleStartM(e.target.value)}
+                    className="w-12 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500 focus:border-transparent text-black text-sm"
+                  />
+                  <span className="text-gray-400 text-sm">월</span>
+                  <input
+                    ref={startDRef} type="text" inputMode="numeric" placeholder="DD"
+                    value={startD} onChange={(e) => handleStartD(e.target.value)}
+                    className="w-12 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500 focus:border-transparent text-black text-sm"
+                  />
+                  <span className="text-gray-400 text-sm">일</span>
+                </div>
               </div>
 
+              {/* 퇴사일/종료일 */}
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  퇴사일
+                  {retirementSystem === "DC" ? "계산 종료일" : "퇴사일"}
                 </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
-                />
+                <div className="flex items-center gap-1">
+                  <input
+                    ref={endYRef} type="text" inputMode="numeric" placeholder="YYYY"
+                    value={endY} onChange={(e) => handleEndY(e.target.value)}
+                    className="w-16 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500 focus:border-transparent text-black text-sm"
+                  />
+                  <span className="text-gray-400 text-sm">년</span>
+                  <input
+                    ref={endMRef} type="text" inputMode="numeric" placeholder="MM"
+                    value={endM} onChange={(e) => handleEndM(e.target.value)}
+                    className="w-12 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500 focus:border-transparent text-black text-sm"
+                  />
+                  <span className="text-gray-400 text-sm">월</span>
+                  <input
+                    ref={endDRef} type="text" inputMode="numeric" placeholder="DD"
+                    value={endD} onChange={(e) => handleEndD(e.target.value)}
+                    className="w-12 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-green-500 focus:border-transparent text-black text-sm"
+                  />
+                  <span className="text-gray-400 text-sm">일</span>
+                </div>
               </div>
 
               {/* DB형(확정급여형) 및 퇴직금제도 입력 필드 */}
@@ -642,46 +904,36 @@ export default function RetirementPayPage() {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-black mb-2">
-                      월 기여금 (원)
+                      직전 1년 총급여액 *
                     </label>
                     <div className="relative">
                       <input
                         type="text"
-                        value={monthlyContribution}
-                        onChange={(e) => setMonthlyContribution(formatNumber(e.target.value))}
-                        placeholder="예: 200,000"
+                        value={annualSalaryForDC}
+                        onChange={(e) => setAnnualSalaryForDC(formatNumber(e.target.value))}
+                        placeholder="예: 36,000,000"
                         className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                       />
                       <span className="absolute right-3 top-2 text-black">원</span>
                     </div>
                     <p className="text-xs text-black mt-1">
-                      * 매월 적립된 기여금 금액 (월급의 8.3% 이상)
+                      * 부담금 산정 기준이 되는 직전 1년간 지급받은 임금총액
                     </p>
+                    {annualSalaryForDC && (
+                      <div className="mt-2 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
+                        <p className="text-xs text-purple-700">
+                          연 부담금 (법정 최소): <span className="font-semibold">{Math.round(parseInt(annualSalaryForDC.replace(/,/g, "")) / 12).toLocaleString()}원</span>
+                          <span className="ml-1 text-purple-500">(총급여액 ÷ 12)</span>
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-black mb-2">
-                      운용수익률 (연간, %)
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        step="0.1"
-                        value={annualReturn}
-                        onChange={(e) => setAnnualReturn(e.target.value)}
-                        placeholder="예: 3.5"
-                        className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
-                      />
-                      <span className="absolute right-3 top-2 text-black">%</span>
-                    </div>
-                    <p className="text-xs text-black mt-1">
-                      * 기여금 운용으로 얻은 연평균 수익률
-                    </p>
-                  </div>
 
                   <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                    <p className="text-sm text-purple-800 font-medium">💡 계산식</p>
-                    <p className="text-xs text-purple-700 mt-1">퇴직급여 = 적립원금 + 운용수익</p>
+                    <p className="text-sm text-purple-800 font-medium">💡 법정 계산식 (근로자퇴직급여보장법 제20조)</p>
+                    <p className="text-xs text-purple-700 mt-1">연 부담금 = 직전 1년 총급여액 ÷ 12</p>
+                    <p className="text-xs text-purple-700">수령액 = 연 부담금 × 적립연수 + 운용수익</p>
                   </div>
                 </>
               )}
@@ -797,42 +1049,224 @@ export default function RetirementPayPage() {
 
             {/* 계산기 콘텐츠 - 접기/펼치기 */}
             <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-              isAveragePayCalculatorOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+              isAveragePayCalculatorOpen ? 'max-h-[9999px] opacity-100' : 'max-h-0 opacity-0'
             }`}>
               <div className="p-6 pt-4">
 
             <div className="space-y-4">
-              {/* 퇴사일 */}
+              {/* 퇴사일 분리 입력 */}
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  퇴사일
-                </label>
-                <input
-                  type="date"
-                  value={retirementDate}
-                  onChange={(e) => handleRetirementDateChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-                />
+                <label className="block text-sm font-medium text-black mb-2">퇴사일</label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text" inputMode="numeric" placeholder="YYYY"
+                    value={retireY} onChange={(e) => handleRetireY(e.target.value)}
+                    className="w-16 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black text-sm"
+                  />
+                  <span className="text-gray-400 text-sm">년</span>
+                  <input
+                    ref={retireMRef} type="text" inputMode="numeric" placeholder="MM"
+                    value={retireM} onChange={(e) => handleRetireM(e.target.value)}
+                    className="w-12 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black text-sm"
+                  />
+                  <span className="text-gray-400 text-sm">월</span>
+                  <input
+                    ref={retireDRef} type="text" inputMode="numeric" placeholder="DD"
+                    value={retireD} onChange={(e) => handleRetireD(e.target.value)}
+                    className="w-12 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black text-sm"
+                  />
+                  <span className="text-gray-400 text-sm">일</span>
+                </div>
                 <p className="text-xs text-blue-600 mt-1">
-                  퇴사일을 선택하면 평균임금 계산 기간(퇴사 전 3개월)이 자동으로 계산됩니다.
+                  퇴사일 입력 시 직전 3개월 기간이 자동으로 계산됩니다. 직접 수정도 가능합니다.
                 </p>
+              </div>
+
+              {/* 기본급/수당 일괄 입력 */}
+              <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                <h3 className="text-base font-semibold text-black mb-3">기본급·수당 일괄 입력</h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  아래에 월 기본급과 수당을 입력하고 <strong>일괄 적용</strong>하면 각 기간에 맞게 자동으로 일할 계산되어 입력됩니다. 이후 개별 수정 가능합니다.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">월 기본급</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={defaultBaseSalary}
+                        onChange={(e) => setDefaultBaseSalary(formatNumber(e.target.value))}
+                        placeholder="예: 3,000,000"
+                        className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-black"
+                      />
+                      <span className="absolute right-3 top-2 text-black">원</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">수당 (여러 개 가능)</label>
+                    {defaultAllowances.map((a, idx) => (
+                      <div key={idx} className="flex items-center gap-2 mb-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={a}
+                            onChange={(e) => {
+                              const next = [...defaultAllowances];
+                              next[idx] = formatNumber(e.target.value);
+                              setDefaultAllowances(next);
+                            }}
+                            placeholder={`수당${idx + 1}`}
+                            className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-black"
+                          />
+                          <span className="absolute right-3 top-2 text-black">원</span>
+                        </div>
+                        {defaultAllowances.length > 1 && (
+                          <button
+                            onClick={() => setDefaultAllowances(defaultAllowances.filter((_, i) => i !== idx))}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setDefaultAllowances([...defaultAllowances, ""])}
+                      className="flex items-center text-gray-600 hover:text-gray-800 text-sm"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      수당 추가
+                    </button>
+                  </div>
+                </div>
+                <button
+                  onClick={applyDefaultSalary}
+                  className="w-full py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium text-sm"
+                >
+                  각 기간에 일괄 적용
+                </button>
               </div>
 
               {/* 퇴사 직전 3개월 급여 */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-black">퇴사 직전 3개월 급여</h3>
 
+                {/* 4개월차 (만 3개월 시작 부분 달 — 퇴직일이 월 중간인 경우만 표시) */}
+                {month4Data.startDate && (
+                <div className="border border-gray-200 rounded-lg p-4 bg-purple-50">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <h4 className="font-medium text-black min-w-fit">{month4Data.monthName || "4개월차"}</h4>
+                    <div className="flex items-center gap-1 text-sm">
+                      <input type="text" placeholder="YYYY-MM-DD"
+                        value={month4Data.startDate}
+                        onChange={(e) => updateMonthData(month4Data, setMonth4Data, 'startDate', e.target.value)}
+                        className="w-28 px-2 py-1 border border-purple-200 rounded text-center text-xs bg-white focus:ring-1 focus:ring-purple-400 text-purple-700"
+                      />
+                      <span className="text-gray-400">~</span>
+                      <input type="text" placeholder="YYYY-MM-DD"
+                        value={month4Data.endDate}
+                        onChange={(e) => updateMonthData(month4Data, setMonth4Data, 'endDate', e.target.value)}
+                        className="w-28 px-2 py-1 border border-purple-200 rounded text-center text-xs bg-white focus:ring-1 focus:ring-purple-400 text-purple-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">
+                        이수일수 <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={month4Data.workingDays}
+                          onChange={(e) => updateMonthData(month4Data, setMonth4Data, 'workingDays', e.target.value)}
+                          placeholder="예: 15"
+                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black"
+                        />
+                        <span className="absolute right-3 top-2 text-black">일</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">
+                        기본급 <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={month4Data.baseSalary}
+                          onChange={(e) => updateMonthData(month4Data, setMonth4Data, 'baseSalary', e.target.value)}
+                          placeholder="예: 2,500,000"
+                          className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black"
+                        />
+                        <span className="absolute right-3 top-2 text-black">원</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-black mb-2">수당</label>
+                    {month4Data.allowances.map((allowance, index) => (
+                      <div key={index} className="flex items-center gap-2 mb-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={allowance}
+                            onChange={(e) => updateMonthData(month4Data, setMonth4Data, 'allowance', e.target.value, index)}
+                            placeholder={`수당${index + 1}`}
+                            className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black"
+                          />
+                          <span className="absolute right-3 top-2 text-black">원</span>
+                        </div>
+                        {month4Data.allowances.length > 1 && (
+                          <button
+                            onClick={() => removeAllowance(month4Data, setMonth4Data, index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => addAllowance(month4Data, setMonth4Data)}
+                      className="flex items-center text-purple-600 hover:text-purple-700 text-sm"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      수당 추가
+                    </button>
+                  </div>
+
+                  <div className="mt-4 bg-white p-3 rounded border">
+                    <div className="flex justify-between text-sm">
+                      <span>월 총 급여:</span>
+                      <span className="font-medium text-purple-600">{month4Data.monthlyTotal}원</span>
+                    </div>
+                  </div>
+                </div>
+                )}
+
                 {/* 3개월차 */}
                 <div className="border border-gray-200 rounded-lg p-4 bg-blue-50">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium text-black">
-                      {month3Data.monthName || "3개월 전"} 
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <h4 className="font-medium text-black min-w-fit">
+                      {month3Data.monthName || "3개월 전"}
                     </h4>
-                    {month3Data.startDate && month3Data.endDate && (
-                      <span className="text-sm text-blue-600">
-                        {month3Data.startDate} ~ {month3Data.endDate}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1 text-sm">
+                      <input
+                        type="text" placeholder="YYYY-MM-DD"
+                        value={month3Data.startDate}
+                        onChange={(e) => updateMonthData(month3Data, setMonth3Data, 'startDate', e.target.value)}
+                        className="w-28 px-2 py-1 border border-blue-200 rounded text-center text-xs bg-white focus:ring-1 focus:ring-blue-400 text-blue-700"
+                      />
+                      <span className="text-gray-400">~</span>
+                      <input
+                        type="text" placeholder="YYYY-MM-DD"
+                        value={month3Data.endDate}
+                        onChange={(e) => updateMonthData(month3Data, setMonth3Data, 'endDate', e.target.value)}
+                        className="w-28 px-2 py-1 border border-blue-200 rounded text-center text-xs bg-white focus:ring-1 focus:ring-blue-400 text-blue-700"
+                      />
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -915,15 +1349,21 @@ export default function RetirementPayPage() {
 
                 {/* 2개월차 */}
                 <div className="border border-gray-200 rounded-lg p-4 bg-green-50">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium text-black">
-                      {month2Data.monthName || "2개월 전"}
-                    </h4>
-                    {month2Data.startDate && month2Data.endDate && (
-                      <span className="text-sm text-green-600">
-                        {month2Data.startDate} ~ {month2Data.endDate}
-                      </span>
-                    )}
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <h4 className="font-medium text-black min-w-fit">{month2Data.monthName || "2개월 전"}</h4>
+                    <div className="flex items-center gap-1 text-sm">
+                      <input type="text" placeholder="YYYY-MM-DD"
+                        value={month2Data.startDate}
+                        onChange={(e) => updateMonthData(month2Data, setMonth2Data, 'startDate', e.target.value)}
+                        className="w-28 px-2 py-1 border border-green-200 rounded text-center text-xs bg-white focus:ring-1 focus:ring-green-400 text-green-700"
+                      />
+                      <span className="text-gray-400">~</span>
+                      <input type="text" placeholder="YYYY-MM-DD"
+                        value={month2Data.endDate}
+                        onChange={(e) => updateMonthData(month2Data, setMonth2Data, 'endDate', e.target.value)}
+                        className="w-28 px-2 py-1 border border-green-200 rounded text-center text-xs bg-white focus:ring-1 focus:ring-green-400 text-green-700"
+                      />
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1006,15 +1446,21 @@ export default function RetirementPayPage() {
 
                 {/* 1개월차 */}
                 <div className="border border-gray-200 rounded-lg p-4 bg-yellow-50">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium text-black">
-                      {month1Data.monthName || "1개월 전"}
-                    </h4>
-                    {month1Data.startDate && month1Data.endDate && (
-                      <span className="text-sm text-yellow-600">
-                        {month1Data.startDate} ~ {month1Data.endDate}
-                      </span>
-                    )}
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <h4 className="font-medium text-black min-w-fit">{month1Data.monthName || "1개월 전"}</h4>
+                    <div className="flex items-center gap-1 text-sm">
+                      <input type="text" placeholder="YYYY-MM-DD"
+                        value={month1Data.startDate}
+                        onChange={(e) => updateMonthData(month1Data, setMonth1Data, 'startDate', e.target.value)}
+                        className="w-28 px-2 py-1 border border-yellow-200 rounded text-center text-xs bg-white focus:ring-1 focus:ring-yellow-400 text-yellow-700"
+                      />
+                      <span className="text-gray-400">~</span>
+                      <input type="text" placeholder="YYYY-MM-DD"
+                        value={month1Data.endDate}
+                        onChange={(e) => updateMonthData(month1Data, setMonth1Data, 'endDate', e.target.value)}
+                        className="w-28 px-2 py-1 border border-yellow-200 rounded text-center text-xs bg-white focus:ring-1 focus:ring-yellow-400 text-yellow-700"
+                      />
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1146,7 +1592,7 @@ export default function RetirementPayPage() {
               {averagePayResult && (
                 <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="font-semibold text-blue-800 mb-3">평균임금 계산 결과</h4>
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2 text-sm text-black">
                     <div className="flex justify-between">
                       <span>3개월 총 급여:</span>
                       <span className="font-medium">{averagePayResult.totalSalary.toLocaleString()}원</span>
@@ -1197,12 +1643,23 @@ export default function RetirementPayPage() {
 
             {result ? (
               <div className="space-y-4">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-green-800 mb-2">퇴직급여</h3>
-                  <div className="text-3xl font-bold text-green-600">
+                {result.workingDays < 365 && (result.retirementType === "DB형 (확정급여형)" || result.retirementType === "혼합형") && (
+                  <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 flex items-start gap-2">
+                    <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-orange-800">계속근로기간 1년 미만 — 퇴직급여 지급 불가</p>
+                      <p className="text-xs text-orange-700 mt-1">
+                        근로자퇴직급여 보장법 제4조에 따라 계속근로기간이 1년 미만인 경우 퇴직급여 지급 의무가 없습니다.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <div className={`border rounded-lg p-4 ${result.workingDays < 365 && result.retirementType !== "DC형 (확정기여형)" ? "bg-gray-50 border-gray-200" : "bg-green-50 border-green-200"}`}>
+                  <h3 className={`text-lg font-semibold mb-2 ${result.workingDays < 365 && result.retirementType !== "DC형 (확정기여형)" ? "text-gray-600" : "text-green-800"}`}>퇴직급여</h3>
+                  <div className={`text-3xl font-bold ${result.workingDays < 365 && result.retirementType !== "DC형 (확정기여형)" ? "text-gray-400" : "text-green-600"}`}>
                     {result.totalAmount.toLocaleString()}원
                   </div>
-                  <p className="text-sm text-green-700 mt-1">
+                  <p className={`text-sm mt-1 ${result.workingDays < 365 && result.retirementType !== "DC형 (확정기여형)" ? "text-gray-500" : "text-green-700"}`}>
                     {result.retirementType} 기준
                   </p>
                 </div>
@@ -1210,31 +1667,31 @@ export default function RetirementPayPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-black">입사일</span>
-                    <span className="font-medium">{result.startDate}</span>
+                    <span className="font-medium text-black">{result.startDate}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-black">퇴사일</span>
-                    <span className="font-medium">{result.endDate}</span>
+                    <span className="font-medium text-black">{result.endDate}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-black">근속기간</span>
-                    <span className="font-medium">{result.workingYears}년 {result.workingMonths % 12}개월</span>
+                    <span className="font-medium text-black">{result.workingYears}년 {result.workingMonths % 12}개월</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-black">근속일수</span>
-                    <span className="font-medium">{result.workingDays}일</span>
+                    <span className="font-medium text-black">{result.workingDays}일</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-black">평균임금 (월급)</span>
-                    <span className="font-medium">{result.monthlyPay.toLocaleString()}원/월</span>
+                    <span className="font-medium text-black">{result.monthlyPay.toLocaleString()}원/월</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-black">평균임금 (일급)</span>
-                    <span className="font-medium">{result.averagePay.toLocaleString()}원/일</span>
+                    <span className="font-medium text-black">{result.averagePay.toLocaleString()}원/일</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-black">기본 퇴직급여</span>
-                    <span className="font-medium">{result.retirementPay.toLocaleString()}원</span>
+                    <span className="font-medium text-black">{result.retirementPay.toLocaleString()}원</span>
                   </div>
                   {result.continuousServiceBonus > 0 && (
                     <div className="flex justify-between py-2 border-b border-gray-100">
@@ -1410,14 +1867,6 @@ export default function RetirementPayPage() {
                 <li>• 1년 미만 근속자도 퇴직급여 지급 대상</li>
               </ul>
             </div>
-
-            <div>
-              <p className="font-medium mb-2">근로기준법 제34조 (계속근로가산금)</p>
-              <ul className="space-y-1 ml-4">
-                <li>• 5년 이상 계속근로자: 5년마다 평균임금 30일분 가산</li>
-              </ul>
-            </div>
-
             <p className="text-xs text-black mt-3">
               ※ 시행일: 2022.1.1 (법률 제18473호, 2021.8.17, 일부개정)
             </p>

@@ -1,10 +1,13 @@
 // Supabase 보안 설정
 export const supabaseConfig = {
-  // 허용된 도메인 목록
+  // 허용된 도메인 목록 (localhost는 production에서도 무해하므로 항상 포함)
   allowedOrigins: [
     'https://hrtoolkit.co.kr',
     'https://www.hrtoolkit.co.kr',
-    ...(process.env.NODE_ENV === 'development' ? ['http://localhost:3000'] : [])
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://localhost:3003',
   ],
   
   // API 제한 설정

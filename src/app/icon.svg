@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- 배경: 인디고 계열 rounded square -->
+  <rect width="32" height="32" rx="7" fill="#4F46E5"/>
+  <!-- 사람 머리 (HR = Human Resources) -->
+  <circle cx="16" cy="11" r="4" fill="white"/>
+  <!-- 사람 몸통 -->
+  <path d="M8 26c0-4.418 3.582-8 8-8s8 3.582 8 8" fill="white" opacity="0.9"/>
+</svg>
