@@ -67,6 +67,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.5,
     },
+    {
+      url: `${BASE_URL}/news`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.5,
+    },
   ];
 
   // TODO: 아티클 개별 페이지 추가

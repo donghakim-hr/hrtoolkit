@@ -552,6 +552,7 @@ export default function Home() {
               <Link href="/glossary" className="hover:text-white transition-colors">용어사전</Link>
               <Link href="/legal-search" className="hover:text-white transition-colors">법령검색</Link>
               <Link href="/inquiry" className="hover:text-white transition-colors">1:1문의</Link>
+              <Link href="/news" className="hover:text-white transition-colors text-gray-600">인사뉴스</Link>
             </div>
           </div>
 
