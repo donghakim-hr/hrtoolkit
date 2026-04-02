@@ -19,6 +19,8 @@ function RetirementTaxContent() {
   const [retirementPay, setRetirementPay] = useState("");
   const [workingYears, setWorkingYears] = useState("");
   const [age, setAge] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [result, setResult] = useState<RetirementTaxResult | null>(null);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -205,6 +207,17 @@ function RetirementTaxContent() {
     return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
+  // 입퇴사일로 근속연수 자동 계산
+  const calcWorkingYearsFromDates = (start: string, end: string) => {
+    if (!start || !end) return;
+    const s = new Date(start);
+    const e = new Date(end);
+    if (isNaN(s.getTime()) || isNaN(e.getTime()) || e <= s) return;
+    const days = Math.floor((e.getTime() - s.getTime()) / 86400000);
+    const years = Math.floor(days / 365);
+    if (years >= 1) setWorkingYears(String(years));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
       {/* Header */}
@@ -267,6 +280,37 @@ function RetirementTaxContent() {
                 </div>
               </div>
 
+              {/* 입퇴사일로 근속연수 자동 계산 */}
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-medium text-purple-700">입퇴사일 입력 시 근속연수 자동 계산</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs text-black mb-1">입사일</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        calcWorkingYearsFromDates(e.target.value, endDate);
+                      }}
+                      className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-black mb-1">퇴사일</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => {
+                        setEndDate(e.target.value);
+                        calcWorkingYearsFromDates(startDate, e.target.value);
+                      }}
+                      className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   근속연수 *
@@ -282,6 +326,7 @@ function RetirementTaxContent() {
                   />
                   <span className="absolute right-3 top-2 text-black">년</span>
                 </div>
+                <p className="text-xs text-gray-500 mt-1">* 위에서 입퇴사일 입력 시 자동 계산됩니다</p>
               </div>
 
               <div>
@@ -335,47 +380,47 @@ function RetirementTaxContent() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">① 퇴직급여</span>
-                    <span className="font-medium">{result.retirementAmount.toLocaleString()}원</span>
+                    <span className="text-black">① 퇴직급여</span>
+                    <span className="font-medium text-black">{result.retirementAmount.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">② 퇴직소득공제 (근속연수공제)</span>
+                    <span className="text-black">② 퇴직소득공제 (근속연수공제)</span>
                     <span className="font-medium text-green-600">-{result.retirementDeduction.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">③ 과세표준 (①-②)</span>
-                    <span className="font-medium">{result.taxableIncome.toLocaleString()}원</span>
+                    <span className="text-black">③ 과세표준 (①-②)</span>
+                    <span className="font-medium text-black">{result.taxableIncome.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">④ 환산급여 (③÷{result.workingYears}년×12)</span>
-                    <span className="font-medium">{result.convertedIncome.toLocaleString()}원</span>
+                    <span className="text-black">④ 환산급여 (③÷{result.workingYears}년×12)</span>
+                    <span className="font-medium text-black">{result.convertedIncome.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">⑤ 환산급여공제</span>
+                    <span className="text-black">⑤ 환산급여공제</span>
                     <span className="font-medium text-green-600">-{result.hwansanDeduction.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">⑥ 환산과세표준 (④-⑤)</span>
-                    <span className="font-medium">{result.hwansanTaxableIncome.toLocaleString()}원</span>
+                    <span className="text-black">⑥ 환산과세표준 (④-⑤)</span>
+                    <span className="font-medium text-black">{result.hwansanTaxableIncome.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">⑦ 적용세율</span>
-                    <span className="font-medium">{result.taxRate}%</span>
+                    <span className="text-black">⑦ 적용세율</span>
+                    <span className="font-medium text-black">{result.taxRate}%</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">⑧ 환산산출세액</span>
-                    <span className="font-medium">{result.hwansanCalculatedTax.toLocaleString()}원</span>
+                    <span className="text-black">⑧ 환산산출세액</span>
+                    <span className="font-medium text-black">{result.hwansanCalculatedTax.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">⑨ 산출세액 (⑧÷12×{result.workingYears}년)</span>
-                    <span className="font-medium">{result.calculatedTax.toLocaleString()}원</span>
+                    <span className="text-black">⑨ 산출세액 (⑧÷12×{result.workingYears}년)</span>
+                    <span className="font-medium text-black">{result.calculatedTax.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">⑩ 퇴직소득세</span>
+                    <span className="text-black">⑩ 퇴직소득세</span>
                     <span className="font-medium text-red-600">{result.retirementTax.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-gray-100">
-                    <span className="text-gray-600">⑪ 지방소득세 (⑩×10%)</span>
+                    <span className="text-black">⑪ 지방소득세 (⑩×10%)</span>
                     <span className="font-medium text-red-600">{result.localTax.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between py-2 bg-gray-50 rounded px-3 mt-1">

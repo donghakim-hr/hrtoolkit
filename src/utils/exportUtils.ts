@@ -223,80 +223,97 @@ export const exportRetirementTaxToPDF = (result: RetirementTaxResult) => {
 
   // 제목
   doc.setFontSize(18);
-  doc.text('Retirement Tax Calculation Report', 20, yPosition);
+  doc.text('퇴직소득세 계산 결과', 20, yPosition);
   yPosition += 20;
 
   // 기본 정보
   doc.setFontSize(12);
-  doc.text('=== Basic Information ===', 20, yPosition);
+  doc.text('=== 기본 정보 ===', 20, yPosition);
   yPosition += 10;
 
-  doc.text(`Retirement Amount: ${result.retirementAmount.toLocaleString()} KRW`, 20, yPosition);
+  doc.text(`퇴직급여액: ${result.retirementAmount.toLocaleString()}원`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Working Years: ${result.workingYears} years`, 20, yPosition);
+  doc.text(`근속연수: ${result.workingYears}년`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Age: ${result.age} years old`, 20, yPosition);
+  doc.text(`나이: ${result.age}세`, 20, yPosition);
   yPosition += 15;
 
   // 세금 계산 결과
-  doc.text('=== Tax Calculation ===', 20, yPosition);
+  doc.text('=== 세금 계산 결과 ===', 20, yPosition);
   yPosition += 10;
 
-  doc.text(`Retirement Deduction: ${result.retirementDeduction.toLocaleString()} KRW`, 20, yPosition);
+  doc.text(`① 퇴직급여: ${result.retirementAmount.toLocaleString()}원`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Taxable Income: ${result.taxableIncome.toLocaleString()} KRW`, 20, yPosition);
+  doc.text(`② 퇴직소득공제 (근속연수공제): ${result.retirementDeduction.toLocaleString()}원`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Converted Income: ${result.convertedIncome.toLocaleString()} KRW`, 20, yPosition);
+  doc.text(`③ 과세표준 (①-②): ${result.taxableIncome.toLocaleString()}원`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Tax Rate: ${result.taxRate}%`, 20, yPosition);
+  doc.text(`④ 환산급여 (③÷${result.workingYears}년×12): ${result.convertedIncome.toLocaleString()}원`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Calculated Tax: ${result.calculatedTax.toLocaleString()} KRW`, 20, yPosition);
+  doc.text(`⑤ 환산급여공제: ${result.hwansanDeduction?.toLocaleString() ?? '-'}원`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Retirement Tax: ${result.retirementTax.toLocaleString()} KRW`, 20, yPosition);
+  doc.text(`⑥ 환산과세표준 (④-⑤): ${result.hwansanTaxableIncome?.toLocaleString() ?? '-'}원`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Local Tax: ${result.localTax.toLocaleString()} KRW`, 20, yPosition);
+  doc.text(`⑦ 적용세율: ${result.taxRate}%`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Total Tax: ${result.totalTax.toLocaleString()} KRW`, 20, yPosition);
+  doc.text(`⑧ 환산산출세액: ${result.hwansanCalculatedTax?.toLocaleString() ?? '-'}원`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Net Amount: ${result.netAmount.toLocaleString()} KRW`, 20, yPosition);
+  doc.text(`⑨ 산출세액 (⑧÷12×${result.workingYears}년): ${result.calculatedTax.toLocaleString()}원`, 20, yPosition);
   yPosition += 8;
-  doc.text(`Effective Rate: ${result.effectiveRate}`, 20, yPosition);
+  doc.text(`⑩ 퇴직소득세: ${result.retirementTax.toLocaleString()}원`, 20, yPosition);
+  yPosition += 8;
+  doc.text(`⑪ 지방소득세 (⑩×10%): ${result.localTax.toLocaleString()}원`, 20, yPosition);
+  yPosition += 10;
+  doc.text(`총 세액 (⑩+⑪): ${result.totalTax.toLocaleString()}원`, 20, yPosition);
+  yPosition += 8;
+  doc.text(`실수령액: ${result.netAmount.toLocaleString()}원`, 20, yPosition);
+  yPosition += 8;
+  doc.text(`실효세율: ${result.effectiveRate}`, 20, yPosition);
   yPosition += 15;
 
   // 생성일
   doc.setFontSize(10);
-  doc.text(`Generated: ${new Date().toLocaleDateString('ko-KR')}`, 20, yPosition);
+  doc.text(`생성일: ${new Date().toLocaleDateString('ko-KR')}`, 20, yPosition);
 
   // 다운로드
-  doc.save(`retirement-tax-calculation-${new Date().toISOString().split('T')[0]}.pdf`);
+  doc.save(`퇴직소득세계산_${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
 // 퇴직소득세 계산 결과 Excel 출력
 export const exportRetirementTaxToExcel = (result: RetirementTaxResult) => {
+  const effectiveRateStr = result.effectiveRate.endsWith('%')
+    ? result.effectiveRate
+    : `${result.effectiveRate}%`;
+
   const data = [
-    ['항목', '값'],
-    ['퇴직급여액', `${result.retirementAmount.toLocaleString()}원`],
+    ['항목', '값 (원)'],
+    ['① 퇴직급여액', result.retirementAmount],
     ['근속연수', `${result.workingYears}년`],
     ['나이', `${result.age}세`],
     [''],
     ['=== 세금 계산 결과 ===', ''],
-    ['퇴직소득공제', `${result.retirementDeduction.toLocaleString()}원`],
-    ['과세표준', `${result.taxableIncome.toLocaleString()}원`],
-    ['환산소득', `${result.convertedIncome.toLocaleString()}원`],
-    ['세율', `${result.taxRate}%`],
-    ['산출세액', `${result.calculatedTax.toLocaleString()}원`],
-    ['퇴직소득세', `${result.retirementTax.toLocaleString()}원`],
-    ['지방소득세', `${result.localTax.toLocaleString()}원`],
-    ['총 세액', `${result.totalTax.toLocaleString()}원`],
-    ['실수령액', `${result.netAmount.toLocaleString()}원`],
-    ['실효세율', result.effectiveRate],
+    ['② 퇴직소득공제 (근속연수공제)', result.retirementDeduction],
+    ['③ 과세표준 (①-②)', result.taxableIncome],
+    [`④ 환산급여 (③÷${result.workingYears}년×12)`, result.convertedIncome],
+    ['⑤ 환산급여공제', result.hwansanDeduction ?? ''],
+    ['⑥ 환산과세표준 (④-⑤)', result.hwansanTaxableIncome ?? ''],
+    ['⑦ 적용세율', `${result.taxRate}%`],
+    ['⑧ 환산산출세액', result.hwansanCalculatedTax ?? ''],
+    [`⑨ 산출세액 (⑧÷12×${result.workingYears}년)`, result.calculatedTax],
+    ['⑩ 퇴직소득세', result.retirementTax],
+    ['⑪ 지방소득세 (⑩×10%)', result.localTax],
+    ['총 세액 (⑩+⑪)', result.totalTax],
+    ['실수령액', result.netAmount],
+    ['실효세율', effectiveRateStr],
     [''],
     ['생성일', new Date().toLocaleDateString('ko-KR')]
   ];
 
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);
+  // 값 열 너비 조정
+  ws['!cols'] = [{ wch: 35 }, { wch: 20 }];
   XLSX.utils.book_append_sheet(wb, ws, '퇴직소득세계산');
 
-  XLSX.writeFile(wb, `retirement-tax-calculation-${new Date().toISOString().split('T')[0]}.xlsx`);
+  XLSX.writeFile(wb, `퇴직소득세계산_${new Date().toISOString().split('T')[0]}.xlsx`);
 };
