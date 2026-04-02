@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Book, Calendar, FileText, Bookmark, ExternalLink, Eye, Download } from "lucide-react";
+import { ArrowLeft, Search, Book, Calendar, FileText, Bookmark, ExternalLink, Eye, Download, Zap, ChevronDown, ChevronUp } from "lucide-react";
 import legalData from "@/data/legal-articles.json";
 import { LegalData, LegalSearchResult } from "@/types";
 
@@ -12,6 +12,51 @@ export default function LegalSearchPage() {
   const [searchResults, setSearchResults] = useState<LegalSearchResult[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [expandedArticles, setExpandedArticles] = useState<string[]>([]);
+  const [activeQuickArticle, setActiveQuickArticle] = useState<string | null>(null);
+
+  // HR 실무 주요 조문 5선
+  const QUICK_ARTICLES = [
+    {
+      id: "q1",
+      law: "근로기준법",
+      article: "제60조",
+      badge: "연차",
+      badgeColor: "bg-blue-100 text-blue-700",
+      desc: "연차유급휴가",
+    },
+    {
+      id: "q2",
+      law: "근로기준법",
+      article: "제56조",
+      badge: "수당",
+      badgeColor: "bg-teal-100 text-teal-700",
+      desc: "연장·야간·휴일 가산",
+    },
+    {
+      id: "q3",
+      law: "근로기준법",
+      article: "제50조",
+      badge: "근로시간",
+      badgeColor: "bg-indigo-100 text-indigo-700",
+      desc: "법정 근로시간 기준",
+    },
+    {
+      id: "q4",
+      law: "근로자퇴직급여 보장법",
+      article: "제8조",
+      badge: "퇴직금",
+      badgeColor: "bg-sky-100 text-sky-700",
+      desc: "퇴직금 지급 기준",
+    },
+    {
+      id: "q5",
+      law: "최저임금법",
+      article: "제6조",
+      badge: "최저임금",
+      badgeColor: "bg-emerald-100 text-emerald-700",
+      desc: "최저임금 효력",
+    },
+  ] as const;
   const [fullTextCache, setFullTextCache] = useState<Record<string, string>>({});
 
   const laws = ["전체", ...Object.keys(legalData)];
@@ -287,6 +332,130 @@ export default function LegalSearchPage() {
               </select>
             </div>
           </div>
+        </div>
+
+        {/* ── HR 주요 조문 5선 ────────────────────────────────────── */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="h-4 w-4 text-orange-500" />
+            <span className="text-sm font-semibold text-gray-700">HR 실무 주요 조문 바로보기</span>
+            <span className="text-xs text-gray-400">클릭하면 조문 내용이 펼쳐집니다</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {QUICK_ARTICLES.map((qa) => {
+              const data = legalData as LegalData;
+              const lawInfo = data[qa.law];
+              const articleInfo = lawInfo?.조문[qa.article];
+              const title = typeof articleInfo === "object" && articleInfo?.제목
+                ? articleInfo.제목
+                : qa.desc;
+              const content = typeof articleInfo === "object" && articleInfo?.내용
+                ? articleInfo.내용
+                : typeof articleInfo === "string" ? articleInfo : "";
+              const isOpen = activeQuickArticle === qa.id;
+
+              return (
+                <div key={qa.id} className="col-span-1 lg:col-span-1">
+                  <button
+                    onClick={() => setActiveQuickArticle(isOpen ? null : qa.id)}
+                    className={`w-full text-left rounded-xl border p-4 transition-all hover:shadow-md ${
+                      isOpen
+                        ? "bg-orange-50 border-orange-300 shadow-sm"
+                        : "bg-white border-gray-200 hover:border-orange-200"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-1">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${qa.badgeColor}`}>
+                        {qa.badge}
+                      </span>
+                      {isOpen
+                        ? <ChevronUp className="h-3.5 w-3.5 text-orange-500 flex-shrink-0 mt-0.5" />
+                        : <ChevronDown className="h-3.5 w-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+                      }
+                    </div>
+                    <p className="mt-2 text-xs font-medium text-gray-500">{qa.law}</p>
+                    <p className="text-sm font-bold text-gray-900 mt-0.5 leading-snug">
+                      {qa.article} {title}
+                    </p>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 선택된 조문 상세 */}
+          {activeQuickArticle && (() => {
+            const qa = QUICK_ARTICLES.find((q) => q.id === activeQuickArticle)!;
+            const data = legalData as LegalData;
+            const lawInfo = data[qa.law];
+            const articleInfo = lawInfo?.조문[qa.article];
+            const title = typeof articleInfo === "object" && articleInfo?.제목
+              ? articleInfo.제목
+              : qa.desc;
+            const content = typeof articleInfo === "object" && articleInfo?.내용
+              ? articleInfo.내용
+              : typeof articleInfo === "string" ? articleInfo : "조문 내용을 불러올 수 없습니다.";
+            const favId = `${qa.law}-${qa.article}`;
+
+            return (
+              <div className="mt-3 bg-white border border-orange-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 bg-orange-50 border-b border-orange-100">
+                  <div className="flex items-center gap-3">
+                    <Book className="h-4 w-4 text-orange-600" />
+                    <a
+                      href={getLawUrl(qa.law, lawInfo?.법령번호)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-orange-600 hover:underline inline-flex items-center gap-1"
+                    >
+                      {qa.law} <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <span className="text-sm text-gray-500">{qa.article}</span>
+                    <span className="text-sm font-bold text-gray-900">{title}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggleFavorite(favId)}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        favorites.includes(favId)
+                          ? "bg-yellow-100 text-yellow-600"
+                          : "text-gray-400 hover:text-yellow-500"
+                      }`}
+                      title="즐겨찾기"
+                    >
+                      <Bookmark className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setActiveQuickArticle(null)}
+                      className="text-gray-400 hover:text-gray-600 text-xs px-2 py-1 rounded hover:bg-gray-100"
+                    >
+                      닫기
+                    </button>
+                  </div>
+                </div>
+                <div className="px-5 py-4">
+                  <pre className="whitespace-pre-wrap text-sm text-gray-800 font-sans leading-relaxed">
+                    {content}
+                  </pre>
+                  <div className="mt-4 flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-100">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      시행일: {lawInfo?.시행일 ?? "-"}
+                    </span>
+                    <a
+                      href={getLawUrl(qa.law, lawInfo?.법령번호)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-orange-500 hover:text-orange-700"
+                    >
+                      국가법령정보센터에서 원문 보기 <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* 검색 결과 */}
