@@ -174,7 +174,7 @@ export default function Home() {
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center space-x-1">
               <Link href="/articles" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                <BookOpen className="h-3.5 w-3.5" />HR소식
+                <BookOpen className="h-3.5 w-3.5" />아티클
               </Link>
               <Link href="/news" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                 <Newspaper className="h-3.5 w-3.5" />HR소식
@@ -225,7 +225,7 @@ export default function Home() {
           {mobileMenuOpen && (
             <div className="md:hidden pb-3 flex flex-col gap-1 border-t border-gray-100 pt-2">
               <Link href="/articles" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
-                <BookOpen className="h-4 w-4" />HR소식
+                <BookOpen className="h-4 w-4" />아티클
               </Link>
               <Link href="/news" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
                 <Newspaper className="h-4 w-4" />HR소식
