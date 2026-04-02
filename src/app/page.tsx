@@ -174,7 +174,7 @@ export default function Home() {
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center space-x-1">
               <Link href="/articles" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                <BookOpen className="h-3.5 w-3.5" />아티클
+                <BookOpen className="h-3.5 w-3.5" />HR소식
               </Link>
               <Link href="/news" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                 <Newspaper className="h-3.5 w-3.5" />HR주요 소식
