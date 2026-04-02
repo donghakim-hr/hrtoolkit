@@ -4,12 +4,12 @@ import { ArrowLeft, BookOpen, Tag, ArrowRight, Clock } from "lucide-react";
 import articlesData from "@/data/articles.json";
 
 export const metadata: Metadata = {
-  title: "HR 실무 아티클",
+  title: "아티클",
   description:
     "연차·퇴직금·최저임금·4대보험 등 HR 신입 담당자가 꼭 읽어야 할 실무 가이드. 법령 근거와 계산 예시가 포함된 실전 아티클.",
   alternates: { canonical: "https://hrtoolkit.co.kr/articles" },
   openGraph: {
-    title: "HR 실무 아티클 | HR-Toolkit",
+    title: "아티클 | HR-Toolkit",
     description:
       "HR 신입 담당자가 꼭 읽어야 할 실무 가이드. 연차·퇴직금·최저임금·4대보험 등 법령 근거 포함.",
     url: "https://hrtoolkit.co.kr/articles",
@@ -54,7 +54,7 @@ export default function ArticlesPage() {
             </Link>
             <div className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-600" />
-              <h1 className="text-lg font-bold text-gray-900">HR 실무 아티클</h1>
+              <h1 className="text-lg font-bold text-gray-900">HR Read</h1>
             </div>
           </div>
         </div>
@@ -64,9 +64,9 @@ export default function ArticlesPage() {
         {/* 소개 */}
         <div className="text-center mb-10">
           <p className="text-gray-500 text-sm mb-1">HR 신입·초보 담당자를 위한</p>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">실무 가이드 모음</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">매뉴얼 모음</h2>
           <p className="text-gray-600 text-sm max-w-lg mx-auto">
-            법령 근거와 계산 예시를 담은 실전 아티클. 읽고 바로 업무에 쓸 수 있도록 씁니다.
+            법령 근거와 계산 예시를 담은 실전 가이드. 읽고 바로 업무에 쓸 수 있도록 씁니다.
           </p>
         </div>
 
