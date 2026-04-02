@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, FileText, Calculator, Info, AlertCircle, Download, FileSpreadsheet, Save, Check } from "lucide-react";
@@ -21,6 +21,14 @@ function RetirementTaxContent() {
   const [age, setAge] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  // 분리 입력 상태
+  const [sY, setSY] = useState(""); const [sM, setSM] = useState(""); const [sD, setSD] = useState("");
+  const [eY, setEY] = useState(""); const [eM, setEM] = useState(""); const [eD, setED] = useState("");
+  const sMRef = useRef<HTMLInputElement>(null);
+  const sDRef = useRef<HTMLInputElement>(null);
+  const eYRef = useRef<HTMLInputElement>(null);
+  const eMRef = useRef<HTMLInputElement>(null);
+  const eDRef = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<RetirementTaxResult | null>(null);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -218,6 +226,21 @@ function RetirementTaxContent() {
     if (years >= 1) setWorkingYears(String(years));
   };
 
+  const buildDate = (y: string, m: string, d: string) => {
+    if (y.length === 4 && m.length === 2 && d.length === 2) return `${y}-${m}-${d}`;
+    return "";
+  };
+
+  // 입사일 핸들러
+  const handleSY = (v: string) => { const val = v.replace(/\D/g,"").slice(0,4); setSY(val); if(val.length===4) sMRef.current?.focus(); const date=buildDate(val,sM,sD); if(date){setStartDate(date); calcWorkingYearsFromDates(date,endDate);} };
+  const handleSM = (v: string) => { const val = v.replace(/\D/g,"").slice(0,2); setSM(val); if(val.length===2) sDRef.current?.focus(); const date=buildDate(sY,val,sD); if(date){setStartDate(date); calcWorkingYearsFromDates(date,endDate);} };
+  const handleSD = (v: string) => { const val = v.replace(/\D/g,"").slice(0,2); setSD(val); if(val.length===2) eYRef.current?.focus(); const date=buildDate(sY,sM,val); if(date){setStartDate(date); calcWorkingYearsFromDates(date,endDate);} };
+
+  // 퇴사일 핸들러
+  const handleEY = (v: string) => { const val = v.replace(/\D/g,"").slice(0,4); setEY(val); if(val.length===4) eMRef.current?.focus(); const date=buildDate(val,eM,eD); if(date){setEndDate(date); calcWorkingYearsFromDates(startDate,date);} };
+  const handleEM = (v: string) => { const val = v.replace(/\D/g,"").slice(0,2); setEM(val); if(val.length===2) eDRef.current?.focus(); const date=buildDate(eY,val,eD); if(date){setEndDate(date); calcWorkingYearsFromDates(startDate,date);} };
+  const handleED = (v: string) => { const val = v.replace(/\D/g,"").slice(0,2); setED(val); const date=buildDate(eY,eM,val); if(date){setEndDate(date); calcWorkingYearsFromDates(startDate,date);} };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
       {/* Header */}
@@ -283,30 +306,32 @@ function RetirementTaxContent() {
               {/* 입퇴사일로 근속연수 자동 계산 */}
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 space-y-2">
                 <p className="text-xs font-medium text-purple-700">입퇴사일 입력 시 근속연수 자동 계산</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-black mb-1">입사일</label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => {
-                        setStartDate(e.target.value);
-                        calcWorkingYearsFromDates(e.target.value, endDate);
-                      }}
-                      className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black text-sm"
-                    />
+                    <div className="flex items-center gap-1">
+                      <input type="text" inputMode="numeric" placeholder="YYYY" value={sY} onChange={(e) => handleSY(e.target.value)}
+                        className="w-14 px-1.5 py-1.5 border border-gray-300 rounded text-center text-sm text-black focus:ring-1 focus:ring-purple-400" />
+                      <span className="text-gray-400 text-xs">/</span>
+                      <input type="text" inputMode="numeric" placeholder="MM" value={sM} onChange={(e) => handleSM(e.target.value)} ref={sMRef}
+                        className="w-10 px-1 py-1.5 border border-gray-300 rounded text-center text-sm text-black focus:ring-1 focus:ring-purple-400" />
+                      <span className="text-gray-400 text-xs">/</span>
+                      <input type="text" inputMode="numeric" placeholder="DD" value={sD} onChange={(e) => handleSD(e.target.value)} ref={sDRef}
+                        className="w-10 px-1 py-1.5 border border-gray-300 rounded text-center text-sm text-black focus:ring-1 focus:ring-purple-400" />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs text-black mb-1">퇴사일</label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => {
-                        setEndDate(e.target.value);
-                        calcWorkingYearsFromDates(startDate, e.target.value);
-                      }}
-                      className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black text-sm"
-                    />
+                    <div className="flex items-center gap-1">
+                      <input type="text" inputMode="numeric" placeholder="YYYY" value={eY} onChange={(e) => handleEY(e.target.value)} ref={eYRef}
+                        className="w-14 px-1.5 py-1.5 border border-gray-300 rounded text-center text-sm text-black focus:ring-1 focus:ring-purple-400" />
+                      <span className="text-gray-400 text-xs">/</span>
+                      <input type="text" inputMode="numeric" placeholder="MM" value={eM} onChange={(e) => handleEM(e.target.value)} ref={eMRef}
+                        className="w-10 px-1 py-1.5 border border-gray-300 rounded text-center text-sm text-black focus:ring-1 focus:ring-purple-400" />
+                      <span className="text-gray-400 text-xs">/</span>
+                      <input type="text" inputMode="numeric" placeholder="DD" value={eD} onChange={(e) => handleED(e.target.value)} ref={eDRef}
+                        className="w-10 px-1 py-1.5 border border-gray-300 rounded text-center text-sm text-black focus:ring-1 focus:ring-purple-400" />
+                    </div>
                   </div>
                 </div>
               </div>
