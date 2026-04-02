@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 function authCheck(request: NextRequest): boolean {
   const token = request.headers.get('x-admin-token');
-  return token === process.env.ADMIN_SECRET_TOKEN;
+  return token === process.env.ADMIN_PASSWORD;
 }
 
 export async function GET(request: NextRequest) {
