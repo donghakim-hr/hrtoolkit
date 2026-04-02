@@ -4,8 +4,9 @@ import Link from "next/link";
 import {
   Calculator, FileText, DollarSign, Search, HelpCircle, Briefcase,
   Bell, X, User, LogIn, LogOut, MessageSquare, Mail, TrendingUp,
-  BookMarked, ArrowRight, Users, ChevronDown, Sparkles
+  BookMarked, ArrowRight, Users, ChevronDown, Sparkles, BookOpen, CheckCircle
 } from "lucide-react";
+import articlesData from "@/data/articles.json";
 import { useState, useEffect } from "react";
 import { Notice } from "@/types";
 import noticesData from "@/data/notices.json";
@@ -164,6 +165,9 @@ export default function Home() {
 
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center space-x-1">
+              <Link href="/articles" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                <BookOpen className="h-3.5 w-3.5" />아티클
+              </Link>
               <Link href="/notices" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                 <Bell className="h-3.5 w-3.5" />공지사항
               </Link>
@@ -209,6 +213,9 @@ export default function Home() {
           {/* Mobile Nav Dropdown */}
           {mobileMenuOpen && (
             <div className="md:hidden pb-3 flex flex-col gap-1 border-t border-gray-100 pt-2">
+              <Link href="/articles" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+                <BookOpen className="h-4 w-4" />아티클
+              </Link>
               <Link href="/notices" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
                 <Bell className="h-4 w-4" />공지사항
               </Link>
@@ -255,19 +262,20 @@ export default function Home() {
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-sm text-blue-200 mb-6 backdrop-blur-sm">
             <Sparkles className="h-3.5 w-3.5" />
-            HR 신입을 위한 올인원 도구
+            HR 신입·초보 담당자를 위한 실무 플랫폼
           </div>
 
-          <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight leading-tight">
-            HR 업무,
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
+            인사 업무가 처음이어도
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-violet-300">
-              이제 쉽게 해결하세요
+              바로 쓸 수 있습니다
             </span>
           </h1>
 
-          <p className="mt-6 text-lg text-slate-300 max-w-xl mx-auto leading-relaxed">
-            연차 계산부터 퇴직급여, 법령 검색까지 — HR 신입이 자주 헷갈리는 모든 것을 한곳에서 해결합니다.
+          <p className="mt-6 text-base sm:text-lg text-slate-300 max-w-xl mx-auto leading-relaxed">
+            연차 계산, 퇴직급여, 최저임금 확인, 법령 조문 검색까지.<br className="hidden sm:block" />
+            HR 신입이 첫 달에 가장 많이 헤매는 것들을 한곳에 모았습니다.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
@@ -278,22 +286,80 @@ export default function Home() {
               <Calculator className="h-4 w-4" />계산기 바로 사용
               <ArrowRight className="h-4 w-4" />
             </button>
-            <Link href="/glossary" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-6 py-3 rounded-xl transition-colors backdrop-blur-sm">
-              <BookMarked className="h-4 w-4" />HR 용어 알아보기
+            <Link href="/articles" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-6 py-3 rounded-xl transition-colors backdrop-blur-sm">
+              <BookOpen className="h-4 w-4" />실무 아티클 읽기
             </Link>
           </div>
 
           {/* Stats */}
-          <div className="mt-14 grid grid-cols-3 gap-6 max-w-sm mx-auto">
+          <div className="mt-14 grid grid-cols-4 gap-4 max-w-md mx-auto">
             {[
               { value: "4종", label: "계산기" },
               { value: "30+", label: "HR 용어" },
-              { value: "법령", label: "조문 검색" },
+              { value: "175+", label: "법령 조문" },
+              { value: "10+", label: "실무 아티클" },
             ].map((s) => (
               <div key={s.label} className="text-center">
-                <div className="text-2xl font-bold text-white">{s.value}</div>
+                <div className="text-xl font-bold text-white">{s.value}</div>
                 <div className="text-xs text-slate-400 mt-0.5">{s.label}</div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 온보딩 학습 경로 ─────────────────────────────────────── */}
+      <section className="bg-white border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center mb-8">
+            <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider">HR 신입이라면 여기서 시작하세요</span>
+            <h2 className="text-xl font-bold text-gray-900 mt-1">첫 한 달, 이 순서로 익히세요</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                step: "01",
+                title: "용어부터 익히기",
+                desc: "통상임금, 평균임금, 포괄임금제 — 자주 나오는 HR 용어 30개",
+                href: "/glossary",
+                color: "text-amber-600 bg-amber-50 border-amber-100",
+              },
+              {
+                step: "02",
+                title: "법령 기초 파악",
+                desc: "근로기준법 핵심 조문. 궁금한 조문을 바로 검색하세요",
+                href: "/legal-search",
+                color: "text-violet-600 bg-violet-50 border-violet-100",
+              },
+              {
+                step: "03",
+                title: "FAQ로 실전 연습",
+                desc: "신입이 자주 묻는 연차·급여·퇴직 질문 모음",
+                href: "/faq",
+                color: "text-red-600 bg-red-50 border-red-100",
+              },
+              {
+                step: "04",
+                title: "계산기로 확인",
+                desc: "연차·퇴직금·최저임금을 직접 계산해 실무 감각을 키우세요",
+                href: "/annual-leave",
+                color: "text-blue-600 bg-blue-50 border-blue-100",
+              },
+            ].map((item) => (
+              <Link
+                key={item.step}
+                href={item.href}
+                className={`group rounded-2xl border p-5 hover:shadow-md transition-all ${item.color}`}
+              >
+                <div className="text-xs font-bold mb-2 opacity-50">STEP {item.step}</div>
+                <h3 className="font-semibold text-gray-900 mb-1.5 group-hover:underline underline-offset-2">
+                  {item.title}
+                </h3>
+                <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
+                <div className="mt-3 flex items-center gap-1 text-xs font-medium">
+                  바로가기 <ArrowRight className="h-3 w-3" />
+                </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -375,6 +441,71 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── 아티클 미리보기 ─────────────────────────────────────── */}
+      <section className="bg-gray-50 border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider">HR 실무 아티클</span>
+              <h2 className="text-xl font-bold text-gray-900 mt-1">신입 HR 담당자 필독 가이드</h2>
+            </div>
+            <Link href="/articles" className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium">
+              전체 보기 <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {articlesData.slice(0, 3).map((article) => (
+              <div
+                key={article.id}
+                className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all relative"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                    {article.category}
+                  </span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                    준비 중
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-800 text-sm leading-snug mb-2">
+                  {article.title}
+                </h3>
+                <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                  {article.description}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {article.relatedTools.map((href) => {
+                    const toolLabels: Record<string, string> = {
+                      "/annual-leave": "연차 계산기",
+                      "/retirement-pay": "퇴직급여 계산기",
+                      "/retirement-tax": "퇴직소득세 계산기",
+                      "/minimum-wage": "최저임금 확인",
+                    };
+                    return toolLabels[href] ? (
+                      <Link
+                        key={href}
+                        href={href}
+                        className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded border border-blue-100 hover:bg-blue-100 transition-colors"
+                      >
+                        {toolLabels[href]}
+                      </Link>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 text-center">
+            <Link
+              href="/articles"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
+            >
+              <BookOpen className="h-4 w-4" />아티클 전체 보기 ({articlesData.length}개)
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ── Community CTA strip ────────────────────────────────── */}
       <section className="bg-gradient-to-r from-emerald-50 to-teal-50 border-y border-emerald-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-6">
@@ -411,13 +542,15 @@ export default function Home() {
                   HR-Toolkit
                 </Link>
               </div>
-              <p className="text-xs text-gray-500">© 2024 HR-Toolkit. 모든 계산은 관련 법령에 근거합니다.</p>
+              <p className="text-xs text-gray-500">© 2026 HR-Toolkit. 모든 계산은 관련 법령에 근거합니다.</p>
             </div>
 
             <div className="flex flex-wrap gap-4 text-xs">
+              <Link href="/articles" className="hover:text-white transition-colors">아티클</Link>
               <Link href="/notices" className="hover:text-white transition-colors">공지사항</Link>
               <Link href="/faq" className="hover:text-white transition-colors">FAQ</Link>
               <Link href="/glossary" className="hover:text-white transition-colors">용어사전</Link>
+              <Link href="/legal-search" className="hover:text-white transition-colors">법령검색</Link>
               <Link href="/inquiry" className="hover:text-white transition-colors">1:1문의</Link>
             </div>
           </div>
