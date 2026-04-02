@@ -4,8 +4,6 @@ import { CreateInquiryRequest, Inquiry } from '@/types/inquiry';
 import { getUsers } from '@/lib/users';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -96,6 +94,7 @@ export async function POST(request: NextRequest) {
     const newInquiry = createInquiry(inquiryData);
 
     // 관리자에게 이메일 발송
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const adminEmail = process.env.CONTACT_EMAIL || 'eastwater94@naver.com';
     await resend.emails.send({
       from: 'HR-Toolkit 문의 <noreply@hrtoolkit.co.kr>',
