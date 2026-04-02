@@ -177,7 +177,7 @@ export default function Home() {
                 <BookOpen className="h-3.5 w-3.5" />HR소식
               </Link>
               <Link href="/news" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                <Newspaper className="h-3.5 w-3.5" />HR주요 소식
+                <Newspaper className="h-3.5 w-3.5" />HR소식
               </Link>
               <Link href="/notices" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                 <Bell className="h-3.5 w-3.5" />공지사항
@@ -225,10 +225,10 @@ export default function Home() {
           {mobileMenuOpen && (
             <div className="md:hidden pb-3 flex flex-col gap-1 border-t border-gray-100 pt-2">
               <Link href="/articles" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
-                <BookOpen className="h-4 w-4" />아티클
+                <BookOpen className="h-4 w-4" />HR소식
               </Link>
               <Link href="/news" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
-                <Newspaper className="h-4 w-4" />HR주요 소식
+                <Newspaper className="h-4 w-4" />HR소식
               </Link>
               <Link href="/notices" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
                 <Bell className="h-4 w-4" />공지사항
@@ -572,7 +572,7 @@ export default function Home() {
               <Link href="/glossary" className="hover:text-white transition-colors">용어사전</Link>
               <Link href="/legal-search" className="hover:text-white transition-colors">법령검색</Link>
               <Link href="/inquiry" className="hover:text-white transition-colors">1:1문의</Link>
-              <Link href="/news" className="hover:text-white transition-colors text-gray-600">인사뉴스</Link>
+              <Link href="/news" className="hover:text-white transition-colors">인사뉴스</Link>
             </div>
           </div>
 
