@@ -137,11 +137,19 @@ export default async function ArticleDetailPage({
           </div>
         </div>
 
-        {/* 본문 영역 — TODO: MDX 또는 JSON content 필드로 교체 */}
+        {/* 본문 */}
         <div className="prose prose-gray max-w-none mb-12">
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 text-sm text-blue-700">
-            이 아티클은 준비 중입니다. 곧 전체 내용이 발행됩니다.
-          </div>
+          {(article as typeof article & { content?: string }).content ? (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: (article as typeof article & { content?: string }).content!,
+              }}
+            />
+          ) : (
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 text-sm text-blue-700">
+              이 아티클은 준비 중입니다. 곧 전체 내용이 발행됩니다.
+            </div>
+          )}
         </div>
 
         {/* 관련 법령 */}

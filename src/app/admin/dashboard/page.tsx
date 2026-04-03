@@ -20,7 +20,8 @@ import {
   Clock,
   HelpCircle,
   DollarSign,
-  User as UserIcon
+  User as UserIcon,
+  BookOpen
 } from "lucide-react";
 import { Notice } from "@/types";
 import { CommunityPost } from "@/types/community";
@@ -458,6 +459,13 @@ export default function AdminDashboardPage() {
                 <HelpCircle className="h-4 w-4 inline mr-2" />
                 FAQ 관리
               </button>
+              <Link
+                href="/admin/articles"
+                className="py-2 px-1 border-b-2 border-transparent font-medium text-sm text-black hover:text-indigo-600 hover:border-indigo-300 flex items-center"
+              >
+                <BookOpen className="h-4 w-4 inline mr-2" />
+                아티클 관리
+              </Link>
             </nav>
           </div>
         </div>
