@@ -89,7 +89,7 @@ export default async function ArticleDetailPage({
           <div className="flex items-center justify-between h-14">
             <Link
               href="/articles"
-              className="flex items-center text-gray-500 hover:text-blue-600 transition-colors text-sm"
+              className="flex items-center text-black hover:text-blue-600 transition-colors text-sm"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />아티클 목록
             </Link>
@@ -113,7 +113,7 @@ export default async function ArticleDetailPage({
               {article.category}
             </span>
             {article.tags.map((tag) => (
-              <span key={tag} className="flex items-center gap-1 text-xs text-gray-400">
+              <span key={tag} className="flex items-center gap-1 text-xs text-black">
                 <Tag className="h-3 w-3" />
                 {tag}
               </span>
@@ -122,8 +122,8 @@ export default async function ArticleDetailPage({
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-snug mb-4">
             {article.title}
           </h1>
-          <p className="text-gray-500 text-base leading-relaxed mb-4">{article.description}</p>
-          <div className="flex items-center gap-4 text-xs text-gray-400 border-t border-gray-100 pt-4">
+          <p className="text-black text-base leading-relaxed mb-4">{article.description}</p>
+          <div className="flex items-center gap-4 text-xs text-black border-t border-gray-100 pt-4">
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
               발행 {article.publishedAt}
@@ -155,7 +155,7 @@ export default async function ArticleDetailPage({
         {/* 관련 법령 */}
         {article.relatedLaws.length > 0 && (
           <div className="mb-8 bg-gray-50 rounded-xl p-5 border border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">관련 법령 조문</h2>
+            <h2 className="text-sm font-semibold text-black mb-3">관련 법령 조문</h2>
             <div className="flex flex-wrap gap-2">
               {article.relatedLaws.map((law) => (
                 <Link
@@ -174,7 +174,7 @@ export default async function ArticleDetailPage({
         {/* 관련 도구 */}
         {article.relatedTools.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">바로 써볼 수 있는 도구</h2>
+            <h2 className="text-sm font-semibold text-black mb-3">바로 써볼 수 있는 도구</h2>
             <div className="flex flex-wrap gap-2">
               {article.relatedTools.map((href) => (
                 <Link
@@ -192,7 +192,7 @@ export default async function ArticleDetailPage({
         {/* 관련 용어사전 */}
         {article.relatedGlossary.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">관련 HR 용어</h2>
+            <h2 className="text-sm font-semibold text-black mb-3">관련 HR 용어</h2>
             <div className="flex flex-wrap gap-2">
               {article.relatedGlossary.map((term) => (
                 <Link
@@ -217,7 +217,7 @@ export default async function ArticleDetailPage({
         {/* 관련 아티클 */}
         {relatedArticles.length > 0 && (
           <div className="border-t border-gray-100 pt-8">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">같은 카테고리 아티클</h2>
+            <h2 className="text-sm font-semibold text-black mb-4">같은 카테고리 아티클</h2>
             <div className="grid gap-3">
               {relatedArticles.map((related: Article) => (
                 <Link
@@ -241,7 +241,7 @@ export default async function ArticleDetailPage({
         <div className="mt-10 text-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-blue-600 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-black hover:text-blue-600 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             HR-Toolkit 홈으로

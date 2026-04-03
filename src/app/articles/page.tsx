@@ -63,9 +63,9 @@ export default function ArticlesPage() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* 소개 */}
         <div className="text-center mb-10">
-          <p className="text-gray-500 text-sm mb-1">HR 신입·초보 담당자를 위한</p>
+          <p className="text-black text-sm mb-1">HR 신입·초보 담당자를 위한</p>
           <h2 className="text-2xl font-bold text-gray-900 mb-3">매뉴얼 모음</h2>
-          <p className="text-gray-600 text-sm max-w-lg mx-auto">
+          <p className="text-black text-sm max-w-lg mx-auto">
             법령 근거와 계산 예시를 담은 실전 가이드. 읽고 바로 업무에 쓸 수 있도록 씁니다.
           </p>
         </div>
@@ -105,17 +105,17 @@ export default function ArticlesPage() {
                       >
                         {article.category}
                       </span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-black">
                         {TYPE_LABELS[article.type] ?? article.type}
                       </span>
                     </div>
                     <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-1 text-sm sm:text-base">
                       {article.title}
                     </h3>
-                    <p className="text-gray-500 text-sm line-clamp-2">{article.description}</p>
+                    <p className="text-black text-sm line-clamp-2">{article.description}</p>
                     <div className="flex items-center gap-3 mt-2 flex-wrap">
                       {article.tags.slice(0, 3).map((tag) => (
-                        <span key={tag} className="flex items-center gap-1 text-xs text-gray-400">
+                        <span key={tag} className="flex items-center gap-1 text-xs text-black">
                           <Tag className="h-3 w-3" />
                           {tag}
                         </span>
@@ -132,7 +132,7 @@ export default function ArticlesPage() {
         {/* 준비 중 아티클 (Coming Soon) */}
         {comingSoonArticles.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-black uppercase tracking-wide mb-4 flex items-center gap-2">
               <Clock className="h-4 w-4" />
               곧 발행 예정
             </h3>
@@ -152,11 +152,11 @@ export default function ArticlesPage() {
                         >
                           {article.category}
                         </span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-black">
                           준비 중
                         </span>
                       </div>
-                      <h3 className="font-medium text-gray-500 text-sm">{article.title}</h3>
+                      <h3 className="font-medium text-black text-sm">{article.title}</h3>
                     </div>
                   </div>
                 </div>
