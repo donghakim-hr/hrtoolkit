@@ -26,21 +26,37 @@ export async function generateMetadata({
     return { title: "아티클을 찾을 수 없습니다" };
   }
 
+  const url = `https://hrtoolkit.co.kr/articles/${article.slug}`;
+
   return {
     title: article.title,
     description: article.description,
     keywords: article.tags,
-    alternates: {
-      canonical: `https://hrtoolkit.co.kr/articles/${article.slug}`,
-    },
+    alternates: { canonical: url },
     openGraph: {
       title: article.title,
       description: article.description,
-      url: `https://hrtoolkit.co.kr/articles/${article.slug}`,
+      url,
       type: "article",
+      siteName: "HR-Toolkit",
+      locale: "ko_KR",
       publishedTime: article.publishedAt,
       modifiedTime: article.updatedAt,
       tags: article.tags,
+      images: [
+        {
+          url: "https://hrtoolkit.co.kr/og-image.png",
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description: article.description,
+      images: ["https://hrtoolkit.co.kr/og-image.png"],
     },
   };
 }
@@ -81,8 +97,26 @@ export default async function ArticleDetailPage({
     .filter((a) => a.published && a.id !== article.id && a.category === article.category)
     .slice(0, 3);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.description,
+    keywords: article.tags.join(", "),
+    datePublished: article.publishedAt,
+    dateModified: article.updatedAt,
+    author: { "@type": "Organization", name: "HR-Toolkit", url: "https://hrtoolkit.co.kr" },
+    publisher: { "@type": "Organization", name: "HR-Toolkit", url: "https://hrtoolkit.co.kr" },
+    url: `https://hrtoolkit.co.kr/articles/${article.slug}`,
+    inLanguage: "ko-KR",
+  };
+
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Header */}
       <header className="bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
