@@ -138,7 +138,7 @@ export default async function ArticleDetailPage({
         </div>
 
         {/* 본문 */}
-        <div className="prose prose-gray max-w-none mb-12">
+        <div className="prose max-w-none mb-12 text-gray-900 prose-headings:text-gray-900 prose-p:text-gray-900 prose-li:text-gray-900 prose-strong:text-gray-900">
           {(article as typeof article & { content?: string }).content ? (
             <div
               dangerouslySetInnerHTML={{
