@@ -12,7 +12,7 @@ export default function PrivacyPage() {
 
         <section>
           <h2 className="text-lg font-semibold mb-2">1. 수집하는 개인정보 항목</h2>
-          <p>HR-Toolkit(이하 "사이트")은 서비스 제공을 위해 아래와 같은 개인정보를 수집합니다.</p>
+          <p>HR-Toolkit(이하 &ldquo;사이트&rdquo;)은 서비스 제공을 위해 아래와 같은 개인정보를 수집합니다.</p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
             <li>1:1 문의: 이메일 주소, 문의 내용</li>
             <li>커뮤니티: 닉네임, 이메일 주소, 작성 내용</li>
